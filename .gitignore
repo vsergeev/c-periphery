@@ -1,0 +1,7 @@
+*.swp
+obj/
+*.a
+*.sh
+tests/*
+!tests/*.c
+!tests/*.h
