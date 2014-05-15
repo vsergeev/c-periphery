@@ -2,7 +2,7 @@
 
 ## C Wrappers for Linux Peripheral I/O (GPIO, SPI, I2C, MMIO, Serial)
 
-c-periphery is a set of C wrapper functions for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. The c-periphery wrappers simplify and consolidate the native Linux APIs to these interfaces. c-periphery may be useful in embedded Linux environments (including BeagleBone, Raspberry Pi, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, uses static allocations, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
+c-periphery is a set of C wrapper functions for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. The c-periphery wrappers simplify and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including BeagleBone, Raspberry Pi, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, uses static allocations, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
 
 ## Examples
 
@@ -49,6 +49,8 @@ int main(void) {
 }
 ```
 
+[Go to GPIO documentation.](docs/gpio.md)
+
 ### SPI
 
 ``` c
@@ -80,6 +82,8 @@ int main(void) {
     return 0;
 }
 ```
+
+[Go to SPI documentation.](docs/spi.md)
 
 ### I2C
 
@@ -124,6 +128,8 @@ int main(void) {
     return 0;
 }
 ```
+
+[Go to I2C documentation.](docs/i2c.md)
 
 ### MMIO
 
@@ -186,6 +192,8 @@ int main(void) {
 }
 ```
 
+[Go to MMIO documentation.](docs/mmio.md)
+
 ### Serial
 
 ``` c
@@ -226,6 +234,8 @@ int main(void) {
 }
 ```
 
+[Go to Serial documentation.](docs/serial.md)
+
 ## Building
 
 `make` will build c-periphery into a static library.
@@ -233,11 +243,11 @@ int main(void) {
 ``` console
 $ make
 mkdir obj
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/gpio.c -o obj/gpio.o
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/spi.c -o obj/spi.o
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/i2c.c -o obj/i2c.o
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/mmio.c -o obj/mmio.o
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/serial.c -o obj/serial.o
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/gpio.c -o obj/gpio.o
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/spi.c -o obj/spi.o
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/i2c.c -o obj/i2c.o
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/mmio.c -o obj/mmio.o
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/serial.c -o obj/serial.o
 ar rcs periphery.a obj/gpio.o obj/spi.o obj/i2c.o obj/mmio.o obj/serial.o
 $
 ```
@@ -246,11 +256,11 @@ $
 
 ``` console
 $ make tests
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_serial.c periphery.a -o tests/test_serial
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_i2c.c periphery.a -o tests/test_i2c
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_mmio.c periphery.a -o tests/test_mmio
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_spi.c periphery.a -o tests/test_spi
-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_gpio.c periphery.a -o tests/test_gpio
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_serial.c periphery.a -o tests/test_serial
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_i2c.c periphery.a -o tests/test_i2c
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_mmio.c periphery.a -o tests/test_mmio
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_spi.c periphery.a -o tests/test_spi
+cc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_gpio.c periphery.a -o tests/test_gpio
 $
 ```
 
