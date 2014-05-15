@@ -256,10 +256,10 @@ $
 
 ### Cross-compilation
 
-Specify the `CROSS` environment variable with the cross-compiler prefix to cross-compile c-periphery.
+Set the `CC` environment variable with the cross-compiler when calling make:
 
 ``` console
-$ CROSS=arm-linux- make clean all tests
+$ CC=arm-linux-gcc make clean all tests
 rm -rf periphery.a obj tests/test_serial tests/test_i2c tests/test_mmio tests/test_spi tests/test_gpio
 mkdir obj
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/gpio.c -o obj/gpio.o
