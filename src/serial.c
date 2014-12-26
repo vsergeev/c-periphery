@@ -6,7 +6,7 @@
  * License: MIT
  */
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #include <stddef.h>
 #include <stdint.h>
