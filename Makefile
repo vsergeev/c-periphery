@@ -1,32 +1,33 @@
 LIB = periphery.a
-SOURCES = src/gpio.c src/spi.c src/i2c.c src/mmio.c src/serial.c
+SRCS = src/gpio.c src/spi.c src/i2c.c src/mmio.c src/serial.c
 
+SRCDIR = src
 OBJDIR = obj
 
-TEST_SOURCES = $(wildcard tests/*.c)
-TEST_PROGRAMS = $(basename $(TEST_SOURCES))
+TEST_PROGRAMS = $(basename $(wildcard tests/*.c))
 
 ###########################################################################
+
+OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 CFLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast $(DEBUG) -fPIC
 LDFLAGS +=
 
-OBJECTS = $(patsubst src/%,$(OBJDIR)/%,$(patsubst %.c,%.o,$(SOURCES)))
-
 ###########################################################################
 
+.PHONY: all
 all: $(LIB)
 
-.PHONY : tests
+.PHONY: tests
+tests: $(TEST_PROGRAMS)
 
-tests: $(LIB) $(TEST_PROGRAMS)
-
+.PHONY: clean
 clean:
 	rm -rf $(LIB) $(OBJDIR) $(TEST_PROGRAMS)
 
 ###########################################################################
 
-tests/%: tests/%.c
+tests/%: tests/%.c $(LIB)
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIB) -o $@
 
 ###########################################################################
@@ -39,6 +40,6 @@ $(OBJDIR):
 $(LIB): $(OBJECTS)
 	ar rcs $(LIB) $(OBJECTS)
 
-$(OBJDIR)/%.o: src/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 
