@@ -59,7 +59,7 @@ Transfer `count` number of `struct i2c_msg` I2C messages.
 
 `i2c` should be a valid pointer to an I2C handle opened with `i2c_open()`. `msgs` should be a pointer to an array of `struct i2c_msg` (defined in linux/i2c.h).
 
-Each I2C message structure (see [above](#synposis)) specifies the transfer of a consecutive number of bytes to a slave address. The slave address, message flags, buffer length, and pointer to a byte buffer should be specified in each message. The message flags specify whether the message is a read (I2C_M_RD) or write (0) transaction, as well as additional options selected by the bitwise OR of their bitmasks.
+Each I2C message structure (see [above](#synopsis)) specifies the transfer of a consecutive number of bytes to a slave address. The slave address, message flags, buffer length, and pointer to a byte buffer should be specified in each message. The message flags specify whether the message is a read (I2C_M_RD) or write (0) transaction, as well as additional options selected by the bitwise OR of their bitmasks.
 
 Returns 0 on success, or a negative [I2C error code](#return-value) on failure.
 
@@ -125,7 +125,7 @@ The libc errno of the failure in an underlying libc library call can be obtained
 | `I2C_ERROR_ARG`           | Invalid arguments                     |
 | `I2C_ERROR_OPEN`          | Opening I2C device                    |
 | `I2C_ERROR_QUERY_SUPPORT` | Querying I2C support on I2C device    |
-| `I2C_ERROR_NOT_SUPPORTED` | I2C not suppoted on this device       |
+| `I2C_ERROR_NOT_SUPPORTED` | I2C not supported on this device      |
 | `I2C_ERROR_TRANSFER`      | I2C transfer                          |
 | `I2C_ERROR_CLOSE`         | Closing I2C device                    |
 
@@ -148,7 +148,7 @@ int main(void) {
     uint8_t msg_data[1] = { 0xff, };
     struct i2c_msg msgs[2] =
         {
-            /* Write 16-bit addreess */
+            /* Write 16-bit address */
             { .addr = EEPROM_I2C_ADDR, .flags = 0, .len = 2, .buf = msg_addr },
             /* Read 8-bit data */
             { .addr = EEPROM_I2C_ADDR, .flags = I2C_M_RD, .len = 1, .buf = msg_data},
