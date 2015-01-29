@@ -104,7 +104,7 @@ int main(void) {
     uint8_t msg_data[1] = { 0xff, };
     struct i2c_msg msgs[2] =
         {
-            /* Write 16-bit addreess */
+            /* Write 16-bit address */
             { .addr = EEPROM_I2C_ADDR, .flags = 0, .len = 2, .buf = msg_addr },
             /* Read 8-bit data */
             { .addr = EEPROM_I2C_ADDR, .flags = I2C_M_RD, .len = 1, .buf = msg_data},
