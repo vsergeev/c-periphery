@@ -239,8 +239,10 @@ int gpio_supports_interrupts(gpio_t *gpio, bool *supported) {
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->pin);
 
     if (stat(gpio_path, &stat_buf) < 0) {
-        if (errno == ENOENT)
+        if (errno == ENOENT) {
             *supported = false;
+            return 0;
+        }
 
         /* Other error */
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Exporting GPIO: stat 'gpio%d/edge'", gpio->pin);
