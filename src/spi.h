@@ -1,8 +1,6 @@
 /*
- * c-periphery by vsergeev
- * Version 1.0.0 - May 2014
+ * c-periphery
  * https://github.com/vsergeev/c-periphery
- *
  * License: MIT
  */
 
