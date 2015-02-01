@@ -200,8 +200,9 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
 
     /* Set termios attributes */
     if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0) {
+        int errsv = errno;
         close(serial->fd);
-        return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
+        return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errsv, "Setting serial port attributes");
     }
 
     return 0;

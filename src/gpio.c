@@ -74,8 +74,9 @@ int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
         if ((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
             return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: opening 'export'");
         if (write(fd, buf, strlen(buf)+1) < 0) {
+            int errsv = errno;
             close(fd);
-            return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: writing 'export'");
+            return _gpio_error(gpio, GPIO_ERROR_EXPORT, errsv, "Exporting GPIO: writing 'export'");
         }
         if (close(fd) < 0)
             return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: closing 'export'");
@@ -90,8 +91,9 @@ int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: opening 'direction'");
     if (write(fd, gpio_direction_to_string[direction], strlen(gpio_direction_to_string[direction])+1) < 0) {
+        int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: writing 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errsv, "Configuring GPIO: writing 'direction'");
     }
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: closing 'direction'");
@@ -194,8 +196,9 @@ int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Opening GPIO 'direction'");
     if (write(fd, gpio_direction_to_string[direction], strlen(gpio_direction_to_string[direction])+1) < 0) {
+        int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Writing GPIO 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errsv, "Writing GPIO 'direction'");
     }
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Closing GPIO 'direction'");
@@ -213,8 +216,9 @@ int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, errno, "Opening GPIO 'direction'");
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+        int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, errno, "Writing GPIO 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, errsv, "Writing GPIO 'direction'");
     }
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, errno, "Closing GPIO 'direction'");
@@ -264,8 +268,9 @@ int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_SET_EDGE, errno, "Opening GPIO 'edge'");
     if (write(fd, gpio_edge_to_string[edge], strlen(gpio_edge_to_string[edge])+1) < 0) {
+        int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_SET_EDGE, errno, "Writing GPIO 'edge'");
+        return _gpio_error(gpio, GPIO_ERROR_SET_EDGE, errsv, "Writing GPIO 'edge'");
     }
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_SET_EDGE, errno, "Closing GPIO 'edge'");
@@ -283,8 +288,9 @@ int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, errno, "Opening GPIO 'edge'");
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+        int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, errno, "Writing GPIO 'edge'");
+        return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, errsv, "Writing GPIO 'edge'");
     }
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, errno, "Closing GPIO 'edge'");

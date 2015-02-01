@@ -63,20 +63,23 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
     /* Set mode, bit order, extra flags */
     data8 = mode | ((bit_order == LSB_FIRST) ? SPI_LSB_FIRST : 0) | extra_flags;
     if (ioctl(spi->fd, SPI_IOC_WR_MODE, &data8) < 0) {
+        int errsv = errno;
         close(spi->fd);
-        return _spi_error(spi, SPI_ERROR_CONFIGURE, errno, "Setting SPI mode");
+        return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI mode");
     }
 
     /* Set max speed */
     if (ioctl(spi->fd, SPI_IOC_WR_MAX_SPEED_HZ, &max_speed) < 0) {
+        int errsv = errno;
         close(spi->fd);
-        return _spi_error(spi, SPI_ERROR_CONFIGURE, errno, "Setting SPI max speed");
+        return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI max speed");
     }
 
     /* Set bits per word */
     if (ioctl(spi->fd, SPI_IOC_WR_BITS_PER_WORD, &bits_per_word) < 0) {
+        int errsv = errno;
         close(spi->fd);
-        return _spi_error(spi, SPI_ERROR_CONFIGURE, errno, "Setting SPI bits per word");
+        return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI bits per word");
     }
 
     return 0;

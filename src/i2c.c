@@ -54,8 +54,9 @@ int i2c_open(i2c_t *i2c, const char *path) {
 
     /* Query supported functions */
     if (ioctl(i2c->fd, I2C_FUNCS, &supported_funcs) < 0) {
+        int errsv = errno;
         close(i2c->fd);
-        return _i2c_error(i2c, I2C_ERROR_QUERY_SUPPORT, errno, "Querying I2C_FUNCS");
+        return _i2c_error(i2c, I2C_ERROR_QUERY_SUPPORT, errsv, "Querying I2C_FUNCS");
     }
 
     if (!(supported_funcs & I2C_FUNC_I2C)) {

@@ -54,14 +54,16 @@ int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
 
     /* Map memory */
     if ((mmio->ptr = mmap(0, mmio->aligned_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mmio->aligned_base)) == MAP_FAILED) {
+        int errsv = errno;
         close(fd);
-        return _mmio_error(mmio, MMIO_ERROR_MAP, errno, "Mapping memory");
+        return _mmio_error(mmio, MMIO_ERROR_MAP, errsv, "Mapping memory");
     }
 
     /* Close memory */
     if (close(fd) < 0) {
+        int errsv = errno;
         munmap(mmio->ptr, mmio->aligned_size);
-        return _mmio_error(mmio, MMIO_ERROR_OPEN, errno, "Closing /dev/mem");
+        return _mmio_error(mmio, MMIO_ERROR_OPEN, errsv, "Closing /dev/mem");
     }
 
     return 0;
