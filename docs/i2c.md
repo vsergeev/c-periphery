@@ -143,6 +143,12 @@ The libc errno of the failure in an underlying libc library call can be obtained
 int main(void) {
     i2c_t i2c;
 
+    /* Open the i2c-0 bus */
+    if (i2c_open(&i2c, "/dev/i2c-0") < 0) {
+        fprintf(stderr, "i2c_open(): %s\n", i2c_errmsg(&i2c));
+        exit(1);
+    }
+
     /* Read byte at address 0x100 of EEPROM */
     uint8_t msg_addr[2] = { 0x01, 0x00 };
     uint8_t msg_data[1] = { 0xff, };
@@ -153,12 +159,6 @@ int main(void) {
             /* Read 8-bit data */
             { .addr = EEPROM_I2C_ADDR, .flags = I2C_M_RD, .len = 1, .buf = msg_data},
         };
-
-    /* Open the i2c-0 bus */
-    if (i2c_open(&i2c, "/dev/i2c-0") < 0) {
-        fprintf(stderr, "i2c_open(): %s\n", i2c_errmsg(&i2c));
-        exit(1);
-    }
 
     /* Transfer a transaction with two I2C messages */
     if (i2c_transfer(&i2c, msgs, 2) < 0) {
