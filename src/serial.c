@@ -44,42 +44,6 @@ static int _serial_error(struct serial_handle *serial, int code, int c_errno, co
     return code;
 }
 
-static int _serial_baudrate_to_bits(uint32_t baudrate) {
-    switch (baudrate) {
-        case 50: return B50;
-        case 75: return B75;
-        case 110: return B110;
-        case 134: return B134;
-        case 150: return B150;
-        case 200: return B200;
-        case 300: return B300;
-        case 600: return B600;
-        case 1200: return B1200;
-        case 1800: return B1800;
-        case 2400: return B2400;
-        case 4800: return B4800;
-        case 9600: return B9600;
-        case 19200: return B19200;
-        case 38400: return B38400;
-        case 57600: return B57600;
-        case 115200: return B115200;
-        case 230400: return B230400;
-        case 460800: return B460800;
-        case 500000: return B500000;
-        case 576000: return B576000;
-        case 921600: return B921600;
-        case 1000000: return B1000000;
-        case 1152000: return B1152000;
-        case 1500000: return B1500000;
-        case 2000000: return B2000000;
-        case 2500000: return B2500000;
-        case 3000000: return B3000000;
-        case 3500000: return B3500000;
-        case 4000000: return B4000000;
-        default: return -1;
-    }
-}
-
 static int _serial_bits_to_baudrate(uint32_t bits) {
     switch (bits) {
         case B0: return 0;
@@ -123,7 +87,6 @@ int serial_open(serial_t *serial, const char *path, uint32_t baudrate) {
 
 int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, int databits, serial_parity_t parity, int stopbits, bool xonxoff, bool rtscts) {
     struct termios termios_settings;
-    int baudrate_bits;
 
     /* Validate args */
     if (databits != 5 && databits != 6 && databits != 7 && databits != 8)
@@ -185,16 +148,8 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
         termios_settings.c_cflag |= CRTSCTS;
 
     /* Baudrate */
-    baudrate_bits = _serial_baudrate_to_bits(baudrate);
-    if (baudrate_bits > 0) {
-        termios_settings.c_cflag |= baudrate_bits;
-        termios_settings.c_ispeed = baudrate;
-        termios_settings.c_ospeed = baudrate;
-    } else {
-        termios_settings.c_cflag |= CBAUDEX; /* = BOTHER from asm-generic/termbits.h */
-        termios_settings.c_ispeed = baudrate;
-        termios_settings.c_ospeed = baudrate;
-    }
+    cfsetispeed(&termios_settings, baudrate);
+    cfsetospeed(&termios_settings, baudrate);
 
     /* Set termios attributes */
     if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0) {
@@ -311,7 +266,7 @@ int serial_get_baudrate(serial_t *serial, uint32_t *baudrate) {
     baudrate_bits = termios_settings.c_cflag & CBAUD;
 
     if (baudrate_bits == CBAUDEX)   /* = BOTHER from asm-generic/termbits.h */
-        *baudrate = termios_settings.c_ospeed;
+        *baudrate = cfgetospeed(&termios_settings);
     else
         *baudrate = _serial_bits_to_baudrate(baudrate_bits);
 
@@ -402,22 +357,12 @@ int serial_get_rtscts(serial_t *serial, bool *rtscts) {
 
 int serial_set_baudrate(serial_t *serial, uint32_t baudrate) {
     struct termios termios_settings;
-    int baudrate_bits;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
-    termios_settings.c_cflag &= ~CBAUD;
-    baudrate_bits = _serial_baudrate_to_bits(baudrate);
-    if (baudrate_bits > 0) {
-        termios_settings.c_cflag |= baudrate_bits;
-        termios_settings.c_ispeed = baudrate;
-        termios_settings.c_ospeed = baudrate;
-    } else {
-        termios_settings.c_cflag |= CBAUDEX; /* = BOTHER from asm-generic/termbits.h */
-        termios_settings.c_ispeed = baudrate;
-        termios_settings.c_ospeed = baudrate;
-    }
+    cfsetispeed(&termios_settings, baudrate);
+    cfsetospeed(&termios_settings, baudrate);
 
     if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
@@ -534,7 +479,7 @@ int serial_tostring(serial_t *serial, char *str, size_t len) {
         return snprintf(str, len, "Serial (baudrate=?, databits=?, parity=?, stopbits=?, xonxoff=?, rtscts=?)");
 
     if ((termios_settings.c_cflag & CBAUD) == CBAUDEX)  /* = BOTHER from asm-generic/termbits.h */
-        baudrate = termios_settings.c_ospeed;
+        baudrate = cfgetospeed(&termios_settings);
     else
         baudrate = _serial_bits_to_baudrate(termios_settings.c_cflag & CBAUD);
 
