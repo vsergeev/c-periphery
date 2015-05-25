@@ -36,9 +36,9 @@ void test_arguments(void) {
 void test_open_config_close(void) {
     serial_t serial;
     uint32_t baudrate;
-    int databits;
+    unsigned int databits;
     serial_parity_t parity;
-    int stopbits;
+    unsigned int stopbits;
     bool xonxoff;
     bool rtscts;
 
@@ -91,7 +91,7 @@ void test_open_config_close(void) {
 
 void test_loopback(void) {
     serial_t serial;
-    int count;
+    unsigned int count;
     time_t start, stop;
     uint8_t lorem_ipsum[] = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
     uint8_t lorem_hugesum[4096*3];

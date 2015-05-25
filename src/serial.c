@@ -121,7 +121,7 @@ int serial_open(serial_t *serial, const char *path, uint32_t baudrate) {
     return serial_open_advanced(serial, path, baudrate, 8, PARITY_NONE, 1, false, false);
 }
 
-int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, int databits, serial_parity_t parity, int stopbits, bool xonxoff, bool rtscts) {
+int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, unsigned int databits, serial_parity_t parity, unsigned int stopbits, bool xonxoff, bool rtscts) {
     struct termios termios_settings;
 
     /* Validate args */
@@ -249,14 +249,14 @@ int serial_flush(serial_t *serial) {
     return 0;
 }
 
-int serial_input_waiting(serial_t *serial, int *count) {
+int serial_input_waiting(serial_t *serial, unsigned int *count) {
     if (ioctl(serial->fd, TIOCINQ, count) < 0)
         return _serial_error(serial, SERIAL_ERROR_IO, errno, "TIOCINQ query");
 
     return 0;
 }
 
-int serial_output_waiting(serial_t *serial, int *count) {
+int serial_output_waiting(serial_t *serial, unsigned int *count) {
     if (ioctl(serial->fd, TIOCOUTQ, count) < 0)
         return _serial_error(serial, SERIAL_ERROR_IO, errno, "TIOCINQ query");
 
@@ -303,7 +303,7 @@ int serial_get_baudrate(serial_t *serial, uint32_t *baudrate) {
     return 0;
 }
 
-int serial_get_databits(serial_t *serial, int *databits) {
+int serial_get_databits(serial_t *serial, unsigned int *databits) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -343,7 +343,7 @@ int serial_get_parity(serial_t *serial, serial_parity_t *parity) {
     return 0;
 }
 
-int serial_get_stopbits(serial_t *serial, int *stopbits) {
+int serial_get_stopbits(serial_t *serial, unsigned int *stopbits) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -400,7 +400,7 @@ int serial_set_baudrate(serial_t *serial, uint32_t baudrate) {
     return 0;
 }
 
-int serial_set_databits(serial_t *serial, int databits) {
+int serial_set_databits(serial_t *serial, unsigned int databits) {
     struct termios termios_settings;
 
     if (databits != 5 && databits != 6 && databits != 7 && databits != 8)
@@ -446,7 +446,7 @@ int serial_set_parity(serial_t *serial, enum serial_parity parity) {
     return 0;
 }
 
-int serial_set_stopbits(serial_t *serial, int stopbits) {
+int serial_set_stopbits(serial_t *serial, unsigned int stopbits) {
     struct termios termios_settings;
 
     if (stopbits != 1 && stopbits != 2)

@@ -38,30 +38,30 @@ typedef enum serial_parity {
 /* Primary Functions */
 int serial_open(serial_t *serial, const char *path, uint32_t baudrate);
 int serial_open_advanced(serial_t *serial, const char *path,
-                            uint32_t baudrate, int databits,
-                            serial_parity_t parity, int stopbits,
+                            uint32_t baudrate, unsigned int databits,
+                            serial_parity_t parity, unsigned int stopbits,
                             bool xonxoff, bool rtscts);
 int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms);
 int serial_write(serial_t *serial, const uint8_t *buf, size_t len);
 int serial_flush(serial_t *serial);
-int serial_input_waiting(serial_t *serial, int *count);
-int serial_output_waiting(serial_t *serial, int *count);
+int serial_input_waiting(serial_t *serial, unsigned int *count);
+int serial_output_waiting(serial_t *serial, unsigned int *count);
 int serial_poll(serial_t *serial, int timeout_ms);
 int serial_close(serial_t *serial);
 
 /* Getters */
 int serial_get_baudrate(serial_t *serial, uint32_t *baudrate);
-int serial_get_databits(serial_t *serial, int *databits);
+int serial_get_databits(serial_t *serial, unsigned int *databits);
 int serial_get_parity(serial_t *serial, serial_parity_t *parity);
-int serial_get_stopbits(serial_t *serial, int *stopbits);
+int serial_get_stopbits(serial_t *serial, unsigned int *stopbits);
 int serial_get_xonxoff(serial_t *serial, bool *xonxoff);
 int serial_get_rtscts(serial_t *serial, bool *rtscts);
 
 /* Setters */
 int serial_set_baudrate(serial_t *serial, uint32_t baudrate);
-int serial_set_databits(serial_t *serial, int databits);
+int serial_set_databits(serial_t *serial, unsigned int databits);
 int serial_set_parity(serial_t *serial, enum serial_parity parity);
-int serial_set_stopbits(serial_t *serial, int stopbits);
+int serial_set_stopbits(serial_t *serial, unsigned int stopbits);
 int serial_set_xonxoff(serial_t *serial, bool enabled);
 int serial_set_rtscts(serial_t *serial, bool enabled);
 
