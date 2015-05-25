@@ -1,4 +1,4 @@
-# c-periphery v1.0.2
+# c-periphery v1.0.3
 
 ## C Wrappers for Linux Peripheral I/O (GPIO, SPI, I2C, MMIO, Serial)
 
