@@ -10,6 +10,7 @@ TEST_PROGRAMS = $(basename $(wildcard tests/*.c))
 
 OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
+CFLAGS += -std=gnu99 -pedantic
 CFLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast $(DEBUG) -fPIC
 LDFLAGS +=
 
