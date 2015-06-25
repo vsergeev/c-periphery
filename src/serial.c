@@ -150,7 +150,7 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
     /* c_oflag */
     termios_settings.c_oflag = 0;
 
-    /* c_lfag */
+    /* c_lflag */
     termios_settings.c_lflag = 0;
 
     /* c_cflag */
@@ -256,7 +256,7 @@ int serial_input_waiting(serial_t *serial, unsigned int *count) {
 
 int serial_output_waiting(serial_t *serial, unsigned int *count) {
     if (ioctl(serial->fd, TIOCOUTQ, count) < 0)
-        return _serial_error(serial, SERIAL_ERROR_IO, errno, "TIOCINQ query");
+        return _serial_error(serial, SERIAL_ERROR_IO, errno, "TIOCOUTQ query");
 
     return 0;
 }
