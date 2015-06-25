@@ -432,6 +432,10 @@ int serial_set_parity(serial_t *serial, enum serial_parity parity) {
     if (tcgetattr(serial->fd, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
+    termios_settings.c_iflag &= ~(INPCK | ISTRIP);
+    if (parity != PARITY_NONE)
+        termios_settings.c_iflag |= (INPCK | ISTRIP);
+
     termios_settings.c_cflag &= ~(PARENB | PARODD);
     if (parity == PARITY_EVEN)
         termios_settings.c_cflag |= PARENB;
