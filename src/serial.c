@@ -491,7 +491,7 @@ int serial_set_rtscts(serial_t *serial, bool enabled) {
 
     termios_settings.c_cflag &= ~CRTSCTS;
     if (enabled)
-        termios_settings.c_iflag |= CRTSCTS;
+        termios_settings.c_cflag |= CRTSCTS;
 
     if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
