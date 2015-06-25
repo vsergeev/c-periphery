@@ -4,6 +4,8 @@
 
 c-periphery is a set of C wrapper functions for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. The c-periphery wrappers simplify and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including BeagleBone, Raspberry Pi, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, uses static allocations, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
 
+Using Python or Lua? Check out the [python-periphery](https://github.com/vsergeev/python-periphery) and [lua-periphery](https://github.com/vsergeev/lua-periphery) projects.
+
 ## Examples
 
 ### GPIO
