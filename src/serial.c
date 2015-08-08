@@ -70,10 +70,18 @@ static int _serial_baudrate_to_bits(uint32_t baudrate) {
         case 1152000: return B1152000;
         case 1500000: return B1500000;
         case 2000000: return B2000000;
+#ifdef B2500000
         case 2500000: return B2500000;
+#endif
+#ifdef B3000000
         case 3000000: return B3000000;
+#endif
+#ifdef B3500000
         case 3500000: return B3500000;
+#endif
+#ifdef B4000000
         case 4000000: return B4000000;
+#endif
         default: return -1;
     }
 }
@@ -107,10 +115,18 @@ static int _serial_bits_to_baudrate(uint32_t bits) {
         case B1152000: return 1152000;
         case B1500000: return 1500000;
         case B2000000: return 2000000;
+#ifdef B2500000
         case B2500000: return 2500000;
+#endif
+#ifdef B3000000
         case B3000000: return 3000000;
+#endif
+#ifdef B3500000
         case B3500000: return 3500000;
+#endif
+#ifdef B4000000
         case B4000000: return 4000000;
+#endif
         default: return -1;
     }
 }
