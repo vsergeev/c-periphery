@@ -22,7 +22,7 @@ void test_arguments(void) {
     ptest();
 
     /* Invalid direction */
-    passert(gpio_open(&gpio, pin_input, GPIO_DIR_OUT_HIGH+1) == GPIO_ERROR_ARG);
+    passert(gpio_open(&gpio, pin_input, 5) == GPIO_ERROR_ARG);
 }
 
 void test_open_config_close(void) {
@@ -93,6 +93,19 @@ void test_open_config_close(void) {
     passert(gpio_set_edge(&gpio, GPIO_EDGE_NONE) == 0);
     passert(gpio_get_edge(&gpio, &edge) == 0);
     passert(edge == GPIO_EDGE_NONE);
+
+    /* Close GPIO */
+    passert(gpio_close(&gpio) == 0);
+
+    /* Open GPIO as out */
+    passert(gpio_open(&gpio, pin_output, GPIO_DIR_OUT) == 0);
+    /* Close GPIO */
+    passert(gpio_close(&gpio) == 0);
+    /* Open GPIO with preserved direction */
+    passert(gpio_open(&gpio, pin_output, GPIO_DIR_PRESERVE) == 0);
+    /* Check direction is still out */
+    passert(gpio_get_direction(&gpio, &direction) == 0);
+    passert(direction == GPIO_DIR_OUT);
 
     /* Close GPIO */
     passert(gpio_close(&gpio) == 0);

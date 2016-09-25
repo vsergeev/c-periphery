@@ -36,10 +36,11 @@ const char *gpio_errmsg(gpio_t *gpio);
 ### ENUMERATIONS
 
 * `gpio_direction_t`
-    * `GPIO_DIR_IN`: In
-    * `GPIO_DIR_OUT`: Out, initialized to low
-    * `GPIO_DIR_OUT_LOW`: Out, initialized to low
-    * `GPIO_DIR_OUT_HIGH`: Out, initialized to high
+    * `GPIO_DIR_IN`: Input
+    * `GPIO_DIR_OUT`: Output, initialized to low
+    * `GPIO_DIR_OUT_LOW`: Output, initialized to low
+    * `GPIO_DIR_OUT_HIGH`: Output, initialized to high
+    * `GPIO_DIR_PRESERVE`: Preserve existing direction
 
 * `gpio_edge_t`
     * `GPIO_EDGE_NONE`: No interrupt edge
