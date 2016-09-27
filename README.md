@@ -1,4 +1,4 @@
-# c-periphery v1.0.3
+# c-periphery [![Build Status](https://travis-ci.org/vsergeev/c-periphery.svg?branch=master)](https://travis-ci.org/vsergeev/c-periphery) [![GitHub release](https://img.shields.io/github/release/vsergeev/c-periphery.svg?maxAge=7200)](https://github.com/vsergeev/c-periphery) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vsergeev/c-periphery/blob/master/LICENSE)
 
 ## C Wrappers for Linux Peripheral I/O (GPIO, SPI, I2C, MMIO, Serial)
 
