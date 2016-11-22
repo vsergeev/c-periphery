@@ -161,6 +161,10 @@ int gpio_poll(gpio_t *gpio, int timeout_ms) {
     struct pollfd fds[1];
     int ret;
 
+    /* Dummy read before poll() */
+    char buf[1];
+    read(gpio->fd, buf, 1);
+
     /* Seek to end */
     if (lseek(gpio->fd, 0, SEEK_END) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Seeking to end of GPIO 'value'");
@@ -345,4 +349,3 @@ unsigned int gpio_pin(gpio_t *gpio) {
 int gpio_fd(gpio_t *gpio) {
     return gpio->fd;
 }
-
