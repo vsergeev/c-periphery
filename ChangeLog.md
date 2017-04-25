@@ -1,3 +1,9 @@
+* v1.1.1 - 04/25/2017
+    * Fix blocking `gpio_poll()` for some platforms.
+    * Add library version macros and functions.
+    * Contributors
+        * Михаил Корнилов, @iTiky - 0643fe9
+
 * v1.1.0 - 09/27/2016
     * Add support for preserving pin direction to `gpio_open()`.
     * Fix enabling input parity check in `serial_set_parity()`.
