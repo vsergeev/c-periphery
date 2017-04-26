@@ -13,7 +13,7 @@ const char *periphery_version(void) {
 }
 
 const periphery_version_t *periphery_version_info(void) {
-    static periphery_version_t version = {
+    static const periphery_version_t version = {
         .major = PERIPHERY_VERSION_MAJOR,
         .minor = PERIPHERY_VERSION_MINOR,
         .patch = PERIPHERY_VERSION_PATCH,
