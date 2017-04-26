@@ -1,8 +1,8 @@
 # c-periphery [![Build Status](https://travis-ci.org/vsergeev/c-periphery.svg?branch=master)](https://travis-ci.org/vsergeev/c-periphery) [![GitHub release](https://img.shields.io/github/release/vsergeev/c-periphery.svg?maxAge=7200)](https://github.com/vsergeev/c-periphery) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vsergeev/c-periphery/blob/master/LICENSE)
 
-## C Wrappers for Linux Peripheral I/O (GPIO, SPI, I2C, MMIO, Serial)
+## C Library for Linux Peripheral I/O (GPIO, SPI, I2C, MMIO, Serial)
 
-c-periphery is a set of C wrapper functions for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. The c-periphery wrappers simplify and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including BeagleBone, Raspberry Pi, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, uses static allocations, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
+c-periphery is a small C library for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. c-periphery simplifies and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including BeagleBone, Raspberry Pi, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, uses static allocations, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
 
 Using Python or Lua? Check out the [python-periphery](https://github.com/vsergeev/python-periphery) and [lua-periphery](https://github.com/vsergeev/lua-periphery) projects.
 
@@ -302,7 +302,7 @@ $ gcc -I/path/to/periphery/src myprog.c /path/to/periphery/periphery.a -o myprog
 
 ## Testing
 
-The tests located in the [tests](tests/) folder may be run to test the correctness and functionality of the peripheral I/O wrappers. Some tests require interactive probing (e.g. with an oscilloscope), the installation of a physical loopback, or the existence of a particular device on a bus. See the usage of each test for more details on the required test setup.
+The tests located in the [tests](tests/) folder may be run to test the correctness and functionality of c-periphery. Some tests require interactive probing (e.g. with an oscilloscope), the installation of a physical loopback, or the existence of a particular device on a bus. See the usage of each test for more details on the required test setup.
 
 ## License
 
