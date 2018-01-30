@@ -42,7 +42,7 @@ static int _i2c_error(struct i2c_handle *i2c, int code, int c_errno, const char 
 }
 
 int i2c_open(i2c_t *i2c, const char *path) {
-    uint32_t supported_funcs;
+    unsigned long supported_funcs;
 
     memset(i2c, 0, sizeof(struct i2c_handle));
 
