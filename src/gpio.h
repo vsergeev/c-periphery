@@ -7,6 +7,10 @@
 #ifndef _PERIPHERY_GPIO_H
 #define _PERIPHERY_GPIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -71,6 +75,10 @@ int gpio_tostring(gpio_t *gpio, char *str, size_t len);
 /* Error Handling */
 int gpio_errno(gpio_t *gpio);
 const char *gpio_errmsg(gpio_t *gpio);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

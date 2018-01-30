@@ -7,6 +7,10 @@
 #ifndef _PERIPHERY_SPI_H
 #define _PERIPHERY_SPI_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -63,6 +67,10 @@ int spi_tostring(spi_t *spi, char *str, size_t len);
 /* Error Handling */
 int spi_errno(spi_t *spi);
 const char *spi_errmsg(spi_t *spi);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

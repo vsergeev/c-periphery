@@ -7,6 +7,10 @@
 #ifndef _PERIPHERY_I2C_H
 #define _PERIPHERY_I2C_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <limits.h>
@@ -62,6 +66,10 @@ const char *i2c_errmsg(i2c_t *i2c);
     	__u8 *buf;
     };
 */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
