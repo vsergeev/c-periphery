@@ -7,6 +7,10 @@
 #ifndef _PERIPHERY_MMIO_H
 #define _PERIPHERY_MMIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -51,6 +55,10 @@ int mmio_tostring(mmio_t *mmio, char *str, size_t len);
 /* Error Handling */
 int mmio_errno(mmio_t *mmio);
 const char *mmio_errmsg(mmio_t *mmio);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

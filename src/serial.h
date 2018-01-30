@@ -7,6 +7,10 @@
 #ifndef _PERIPHERY_SERIAL_H
 #define _PERIPHERY_SERIAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -72,6 +76,10 @@ int serial_tostring(serial_t *serial, char *str, size_t len);
 /* Error Handling */
 int serial_errno(serial_t *serial);
 const char *serial_errmsg(serial_t *serial);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
