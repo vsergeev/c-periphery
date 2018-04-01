@@ -20,6 +20,10 @@
 #include "gpio.h"
 
 #define P_PATH_MAX  256
+/* Delay between checks for successful GPIO export (100ms) */
+#define GPIO_EXPORT_STAT_DELAY      100000
+/* Number of retries to check for successful GPIO exports */
+#define GPIO_EXPORT_STAT_RETRIES    10
 
 static const char *gpio_direction_to_string[] = {
     [GPIO_DIR_IN]         = "in",
@@ -78,9 +82,20 @@ int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
         if (close(fd) < 0)
             return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: closing 'export'");
 
-        /* Check if GPIO direction exists now */
-        if (stat(gpio_path, &stat_buf) < 0)
-            return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: stat 'gpio%d/'", pin);
+        /* Wait until GPIO directory appears */
+        unsigned int retry_count;
+        for (retry_count = 0; retry_count < GPIO_EXPORT_STAT_RETRIES; retry_count++) {
+            int ret = stat(gpio_path, &stat_buf);
+            if (ret == 0)
+                break;
+            else if (ret < 0 && errno != ENOENT)
+                return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: stat 'gpio%d/'", pin);
+
+            usleep(GPIO_EXPORT_STAT_DELAY);
+        }
+
+        if (retry_count == GPIO_EXPORT_STAT_RETRIES)
+            return _gpio_error(gpio, GPIO_ERROR_EXPORT, 0, "Exporting GPIO: waiting for 'gpio%d/' timed out", pin);
     }
 
     /* If not preserving existing direction */
