@@ -1,3 +1,12 @@
+* v1.1.2 - 04/01/2018
+    * Add handling for delayed pin directory export on some platforms in
+      `gpio_open()`.
+    * Fix supported functions query for 64-bit in `i2c_open()`.
+    * Add support for building with C++.
+    * Contributors
+        * Jared Bents, @jmbents - 304faf4
+        * Ryan Barnett, @rjbarnet - 82ebb4f
+
 * v1.1.1 - 04/25/2017
     * Fix blocking `gpio_poll()` for some platforms.
     * Add library version macros and functions.
