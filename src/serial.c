@@ -159,7 +159,10 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
     /* Ignore break characters */
     termios_settings.c_iflag = IGNBRK;
     if (parity != PARITY_NONE)
-        termios_settings.c_iflag |= (INPCK | ISTRIP);
+        termios_settings.c_iflag |= INPCK;
+    /* Only use ISTRIP when less than 8 bits as it strips the 8th bit */
+    if (parity != PARITY_NONE && databits != 8)
+        termios_settings.c_iflag |= ISTRIP;
     if (xonxoff)
         termios_settings.c_iflag |= (IXON | IXOFF);
 
