@@ -1,3 +1,9 @@
+* v1.1.3 - 04/28/2018
+    * Fix data's most significant bit getting stripped when opening a serial
+      port with parity enabled in `serial_open_advanced()`.
+    * Contributors
+        * Ryan Barnett, @rjbarnet - 537eeac
+
 * v1.1.2 - 04/01/2018
     * Add handling for delayed pin directory export on some platforms in
       `gpio_open()`.
