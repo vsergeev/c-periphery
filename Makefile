@@ -32,7 +32,7 @@ clean:
 ###########################################################################
 
 tests/%: tests/%.c $(LIB)
-	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIB) -o $@ -lpthread
+	$(CROSS)$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIB) -o $@ -lpthread
 
 ###########################################################################
 
@@ -42,8 +42,8 @@ $(OBJDIR):
 	mkdir $(OBJDIR)
 
 $(LIB): $(OBJECTS)
-	ar rcs $(LIB) $(OBJECTS)
+	$(CROSS)$(AR) rcs $(LIB) $(OBJECTS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
+	$(CROSS)$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 

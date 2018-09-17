@@ -294,10 +294,10 @@ $
 
 ### Cross-compilation
 
-Set the `CC` environment variable with the cross-compiler when calling make:
+Set the `CROSS` and `CC` environment variables with the cross-compiler prefix and compiler, respectively, when calling make:
 
 ``` console
-$ CC=arm-linux-gcc make clean all tests
+$ CROSS=arm-linux- CC=gcc make clean all tests
 rm -rf periphery.a obj tests/test_serial tests/test_i2c tests/test_mmio tests/test_spi tests/test_gpio
 mkdir obj
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/gpio.c -o obj/gpio.o
@@ -305,7 +305,7 @@ arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPI
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/i2c.c -o obj/i2c.o
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/mmio.c -o obj/mmio.o
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  -c src/serial.c -o obj/serial.o
-ar rcs periphery.a obj/gpio.o obj/spi.o obj/i2c.o obj/mmio.o obj/serial.o
+arm-linux-ar rcs periphery.a obj/gpio.o obj/spi.o obj/i2c.o obj/mmio.o obj/serial.o
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_serial.c periphery.a -o tests/test_serial
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_i2c.c periphery.a -o tests/test_i2c
 arm-linux-gcc -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast  -fPIC  tests/test_mmio.c periphery.a -o tests/test_mmio
