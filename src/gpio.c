@@ -181,9 +181,9 @@ int gpio_poll(gpio_t *gpio, int timeout_ms) {
     if (read(gpio->fd, buf, 1) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Reading GPIO 'value'");
 
-    /* Seek to end */
-    if (lseek(gpio->fd, 0, SEEK_END) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Seeking to end of GPIO 'value'");
+    /* do'nt Seek to end ,seed to end may cause interrupt lost*/
+    //if (lseek(gpio->fd, 0, SEEK_END) < 0)
+    //    return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Seeking to end of GPIO 'value'");
 
     /* Poll */
     fds[0].fd = gpio->fd;
