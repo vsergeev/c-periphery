@@ -90,10 +90,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[2/4] Open/close test: I2C device should be real.\n");
         fprintf(stderr, "[3/4] Loopback test: No test.\n");
         fprintf(stderr, "[4/4] Interactive test: I2C bus should be observed with an oscilloscope or logic analyzer.\n\n");
-        fprintf(stderr, "Hint: for BeagleBone Black, export I2C1 to /dev/i2c-2 with:\n");
-        fprintf(stderr, "    echo BB-I2C1A1 > /sys/devices/bone_capemgr.9/slots\n");
-        fprintf(stderr, "to enable I2C1 (SCL=P9.24, SDA=P9.26), then run this test:\n");
-        fprintf(stderr, "    %s /dev/i2c-2\n\n", argv[0]);
+        fprintf(stderr, "Hint: for Raspberry Pi 3, enable I2C1 with:\n");
+        fprintf(stderr, "   $ echo \"dtparam=i2c_arm=on\" | sudo tee -a /boot/config.txt\n");
+        fprintf(stderr, "   $ sudo reboot\n");
+        fprintf(stderr, "Use pins I2C1 SDA (header pin 2) and I2C1 SCL (header pin 3),\n");
+        fprintf(stderr, "and run this test with:\n");
+        fprintf(stderr, "    %s /dev/i2c-1\n\n", argv[0]);
         exit(1);
     }
 
