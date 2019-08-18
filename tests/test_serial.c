@@ -194,12 +194,15 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[1/4] Arguments test: No requirements.\n");
         fprintf(stderr, "[2/4] Open/close test: Serial port device should be real.\n");
         fprintf(stderr, "[3/4] Loopback test: Serial TX and RX should be connected with a wire.\n");
-        fprintf(stderr, "[4/4] Interactive test: Serial TX should be observed with a logic analyzer.\n\n");
-        fprintf(stderr, "Hint: for BeagleBone Black, export UART4 to /dev/ttyO4 with:\n");
-        fprintf(stderr, "    echo BB-UART4 > /sys/devices/bone_capemgr.9/slots\n");
-        fprintf(stderr, "to enable UART4 (TX=P9.13 RX=P9.11).\n");
-        fprintf(stderr, "Connect a wire between TX and RX, then run this test:\n");
-        fprintf(stderr, "    %s /dev/ttyO4\n\n", argv[0]);
+        fprintf(stderr, "[4/4] Interactive test: Serial TX should be observed with an oscilloscope or logic analyzer.\n\n");
+        fprintf(stderr, "Hint: for Raspberry Pi 3, enable UART0 with:\n");
+        fprintf(stderr, "   $ echo \"dtoverlay=pi3-disable-bt\" | sudo tee -a /boot/config.txt\n");
+        fprintf(stderr, "   $ sudo systemctl disable hciuart\n");
+        fprintf(stderr, "   $ sudo reboot\n");
+        fprintf(stderr, "   (Note that this will disable Bluetooth)\n");
+        fprintf(stderr, "Use pins UART0 TXD (header pin 8) and UART0 RXD (header pin 10),\n");
+        fprintf(stderr, "connect a loopback between TXD and RXD, and run this test with:\n");
+        fprintf(stderr, "    %s /dev/ttyAMA0\n\n", argv[0]);
         exit(1);
     }
 
