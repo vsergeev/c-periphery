@@ -177,12 +177,13 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[1/4] Arguments test: No requirements.\n");
         fprintf(stderr, "[2/4] Open/close test: SPI device should be real.\n");
         fprintf(stderr, "[3/4] Loopback test: SPI MISO and MOSI should be connected with a wire.\n");
-        fprintf(stderr, "[4/4] Interactive test: SPI MOSI, CLK, CS should be observed with a logic analyzer.\n\n");
-        fprintf(stderr, "Hint: for BeagleBone Black, export SPI0 to /dev/spidev1.* with:\n");
-        fprintf(stderr, "    echo BB-SPIDEV0 > /sys/devices/bone_capemgr.9/slots\n");
-        fprintf(stderr, "to enable SPI0 (CS=P9.17, MOSI=P9.21, MISO=P9.18, CLK=P9.22).\n");
-        fprintf(stderr, "Connect a wire between MOSI and MISO, then run this test:\n");
-        fprintf(stderr, "    %s /dev/spidev1.0\n\n", argv[0]);
+        fprintf(stderr, "[4/4] Interactive test: SPI MOSI, CLK, CS should be observed with an oscilloscope or logic analyzer.\n\n");
+        fprintf(stderr, "Hint: for Raspberry Pi 3, enable SPI0 with:\n");
+        fprintf(stderr, "   $ echo \"dtparam=spi=on\" | sudo tee -a /boot/config.txt\n");
+        fprintf(stderr, "   $ sudo reboot\n");
+        fprintf(stderr, "Use pins SPI0 MOSI (header pin 19), SPI0 MISO (header pin 21), SPI0 SCLK (header pin 23),\n");
+        fprintf(stderr, "connect a loopback between MOSI and MISO, and run this test with:\n");
+        fprintf(stderr, "    %s /dev/spidev0.0\n\n", argv[0]);
         exit(1);
     }
 
