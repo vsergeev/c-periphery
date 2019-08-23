@@ -21,7 +21,16 @@
 
 #include "spi.h"
 
-static int _spi_error(struct spi_handle *spi, int code, int c_errno, const char *fmt, ...) {
+struct spi_handle {
+    int fd;
+
+    struct {
+        int c_errno;
+        char errmsg[96];
+    } error;
+};
+
+static int _spi_error(spi_t *spi, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
 
     spi->error.c_errno = c_errno;
@@ -40,6 +49,14 @@ static int _spi_error(struct spi_handle *spi, int code, int c_errno, const char 
     return code;
 }
 
+spi_t *spi_new(void) {
+    return malloc(sizeof(spi_t));
+}
+
+void spi_free(spi_t *spi) {
+    free(spi);
+}
+
 int spi_open(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed) {
     return spi_open_advanced(spi, path, mode, max_speed, MSB_FIRST, 8, 0);
 }
@@ -53,7 +70,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
     if (bit_order != MSB_FIRST && bit_order != LSB_FIRST)
         return _spi_error(spi, SPI_ERROR_ARG, 0, "Invalid bit order (can be MSB_FIRST,LSB_FIRST)");
 
-    memset(spi, 0, sizeof(struct spi_handle));
+    memset(spi, 0, sizeof(spi_t));
 
     /* Open device */
     if ((spi->fd = open(path, O_RDWR)) < 0)

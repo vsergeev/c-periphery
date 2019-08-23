@@ -23,21 +23,15 @@ enum spi_error_code {
     SPI_ERROR_CLOSE         = -6, /* Closing SPI device */
 };
 
-typedef struct spi_handle {
-    int fd;
-
-    struct {
-        int c_errno;
-        char errmsg[96];
-    } error;
-} spi_t;
-
 typedef enum spi_bit_order {
     MSB_FIRST,
     LSB_FIRST,
 } spi_bit_order_t;
 
+typedef struct spi_handle spi_t;
+
 /* Primary Functions */
+spi_t *spi_new(void);
 int spi_open(spi_t *spi, const char *path, unsigned int mode,
                 uint32_t max_speed);
 int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode,
@@ -45,6 +39,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode,
                         uint8_t bits_per_word, uint8_t extra_flags);
 int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len);
 int spi_close(spi_t *spi);
+void spi_free(spi_t *spi);
 
 /* Getters */
 int spi_get_mode(spi_t *spi, unsigned int *mode);

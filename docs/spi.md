@@ -8,12 +8,14 @@ SPI wrapper functions for Linux userspace `spidev` devices.
 #include <periphery/spi.h>
 
 /* Primary Functions */
+spi_t *spi_new(void);
 int spi_open(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed);
 int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode,
                         uint32_t max_speed, spi_bit_order_t bit_order,
                         uint8_t bits_per_word, uint8_t extra_flags);
 int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len);
 int spi_close(spi_t *spi);
+void spi_free(spi_t *spi);
 
 /* Getters */
 int spi_get_mode(spi_t *spi, unsigned int *mode);
@@ -45,6 +47,15 @@ const char *spi_errmsg(spi_t *spi);
     * `LSB_FIRST`: Least significant bit first transfer
 
 ### DESCRIPTION
+
+``` c
+spi_t *spi_new(void);
+```
+Allocate a SPI handle.
+
+Returns a valid handle on success, or NULL on failure.
+
+------
 
 ``` c
 int spi_open(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed);
@@ -90,6 +101,13 @@ Close the `spidev` device.
 `spi` should be a valid pointer to an SPI handle opened with `spi_open()` or `spi_open_advanced()`.
 
 Returns 0 on success, or a negative [SPI error code](#return-value) on failure.
+
+------
+
+``` c
+void spi_free(spi_t *spi);
+```
+Free a SPI handle.
 
 ------
 
@@ -186,24 +204,29 @@ The libc errno of the failure in an underlying libc library call can be obtained
 #include "spi.h"
 
 int main(void) {
-    spi_t spi;
+    spi_t *spi;
     uint8_t buf[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 
+    spi = spi_new();
+
     /* Open spidev1.0 with mode 0 and max speed 1MHz */
-    if (spi_open(&spi, "/dev/spidev1.0", 0, 1000000) < 0) {
-        fprintf(stderr, "spi_open(): %s\n", spi_errmsg(&spi));
+    if (spi_open(spi, "/dev/spidev1.0", 0, 1000000) < 0) {
+        fprintf(stderr, "spi_open(): %s\n", spi_errmsg(spi));
         exit(1);
     }
 
     /* Shift out and in 4 bytes */
-    if (spi_transfer(&spi, buf, buf, sizeof(buf)) < 0) {
-        fprintf(stderr, "spi_transfer(): %s\n", spi_errmsg(&spi));
+    if (spi_transfer(spi, buf, buf, sizeof(buf)) < 0) {
+        fprintf(stderr, "spi_transfer(): %s\n", spi_errmsg(spi));
         exit(1);
     }
 
     printf("shifted in: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0], buf[1], buf[2], buf[3]);
 
-    spi_close(&spi);
+    spi_close(spi);
+
+    spi_free(spi);
+
     return 0;
 }
 ```
