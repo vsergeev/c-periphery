@@ -163,7 +163,7 @@ unsigned int gpio_pin(gpio_t *gpio);
 ```
 Return the pin the GPIO handle was opened with.
 
-`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()` or `gpio_open_advanced()`.
+`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()`.
 
 This function is a simple accessor to the GPIO handle structure and always succeeds.
 
@@ -174,7 +174,7 @@ int gpio_fd(gpio_t *gpio);
 ```
 Return the file descriptor (for the underlying sysfs GPIO "value" file) of the GPIO handle.
 
-`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()` or `gpio_open_advanced()`.
+`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()`.
 
 This function is a simple accessor to the GPIO handle structure and always succeeds.
 
@@ -185,7 +185,7 @@ int gpio_tostring(gpio_t *gpio, char *str, size_t len);
 ```
 Return a string representation of the GPIO handle.
 
-`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()` or `gpio_open_advanced()`.
+`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()`.
 
 This function behaves and returns like `snprintf()`.
 
@@ -196,7 +196,7 @@ int gpio_errno(gpio_t *gpio);
 ```
 Return the libc errno of the last failure that occurred.
 
-`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()` or `gpio_open_advanced()`.
+`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()`.
 
 This function is a simple accessor to the GPIO handle structure and always succeeds.
 
@@ -207,7 +207,7 @@ const char *gpio_errmsg(gpio_t *gpio);
 ```
 Return a human readable error message of the last failure that occurred. The returned string should not be modified by the application.
 
-`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()` or `gpio_open_advanced()`.
+`gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()`.
 
 This function is a simple accessor to the GPIO handle structure and always succeeds.
 
