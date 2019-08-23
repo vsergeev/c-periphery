@@ -27,19 +27,14 @@ enum i2c_error_code {
     I2C_ERROR_CLOSE             = -6, /* Closing I2C device */
 };
 
-typedef struct i2c_handle {
-    int fd;
-
-    struct {
-        int c_errno;
-        char errmsg[96];
-    } error;
-} i2c_t;
+typedef struct i2c_handle i2c_t;
 
 /* Primary Functions */
+i2c_t *i2c_new(void);
 int i2c_open(i2c_t *i2c, const char *path);
 int i2c_transfer(i2c_t *i2c, struct i2c_msg *msgs, size_t count);
 int i2c_close(i2c_t *i2c);
+void i2c_free(i2c_t *i2c);
 
 /* Miscellaneous */
 int i2c_fd(i2c_t *i2c);

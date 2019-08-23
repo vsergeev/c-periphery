@@ -26,16 +26,23 @@ void test_arguments(void) {
 }
 
 void test_open_config_close(void) {
-    i2c_t i2c;
+    i2c_t *i2c;
 
     ptest();
 
+    /* Allocate I2C */
+    i2c = i2c_new();
+    passert(i2c != NULL);
+
     /* Open invalid i2c bus */
-    passert(i2c_open(&i2c, "/foo/bar") == I2C_ERROR_OPEN);
+    passert(i2c_open(i2c, "/foo/bar") == I2C_ERROR_OPEN);
 
     /* Open legitimate i2c bus */
-    passert(i2c_open(&i2c, i2c_bus_path) == 0);
-    passert(i2c_close(&i2c) == 0);
+    passert(i2c_open(i2c, i2c_bus_path) == 0);
+    passert(i2c_close(i2c) == 0);
+
+    /* Free I2C */
+    i2c_free(i2c);
 }
 
 void test_loopback(void) {
@@ -51,13 +58,17 @@ bool getc_yes(void) {
 }
 
 void test_interactive(void) {
-    i2c_t i2c;
+    i2c_t *i2c;
     uint8_t msg1[] = { 0xaa, 0xbb, 0xcc, 0xdd };
     struct i2c_msg msgs[1];
 
     ptest();
 
-    passert(i2c_open(&i2c, i2c_bus_path) == 0);
+    /* Allocate I2C */
+    i2c = i2c_new();
+    passert(i2c != NULL);
+
+    passert(i2c_open(i2c, i2c_bus_path) == 0);
 
     printf("Starting interactive test. Get out your logic analyzer, buddy!\n");
     printf("Press enter to continue...\n");
@@ -76,11 +87,14 @@ void test_interactive(void) {
 
     printf("Press enter to start transfer...");
     getc(stdin);
-    passert(i2c_transfer(&i2c, msgs, 1) < 0);
-    passert(i2c_errno(&i2c) == EREMOTEIO);
-    passert(i2c_close(&i2c) == 0);
+    passert(i2c_transfer(i2c, msgs, 1) < 0);
+    passert(i2c_errno(i2c) == EREMOTEIO);
+    passert(i2c_close(i2c) == 0);
     printf("I2C transfer occurred? y/n\n");
     passert(getc_yes());
+
+    /* Free I2C */
+    i2c_free(i2c);
 }
 
 int main(int argc, char *argv[]) {

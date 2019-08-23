@@ -22,7 +22,16 @@
 
 #include "i2c.h"
 
-static int _i2c_error(struct i2c_handle *i2c, int code, int c_errno, const char *fmt, ...) {
+struct i2c_handle {
+    int fd;
+
+    struct {
+        int c_errno;
+        char errmsg[96];
+    } error;
+};
+
+static int _i2c_error(i2c_t *i2c, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
 
     i2c->error.c_errno = c_errno;
@@ -41,10 +50,18 @@ static int _i2c_error(struct i2c_handle *i2c, int code, int c_errno, const char 
     return code;
 }
 
+i2c_t *i2c_new(void) {
+    return malloc(sizeof(i2c_t));
+}
+
+void i2c_free(i2c_t *i2c) {
+    free(i2c);
+}
+
 int i2c_open(i2c_t *i2c, const char *path) {
     unsigned long supported_funcs;
 
-    memset(i2c, 0, sizeof(struct i2c_handle));
+    memset(i2c, 0, sizeof(i2c_t));
 
     /* Open device */
     if ((i2c->fd = open(path, O_RDWR)) < 0)

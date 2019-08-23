@@ -8,9 +8,11 @@ I2C wrapper functions for Linux userspace `i2c-dev` devices.
 #include <periphery/i2c.h>
 
 /* Primary Functions */
+i2c_t *i2c_new(void);
 int i2c_open(i2c_t *i2c, const char *device);
 int i2c_transfer(i2c_t *i2c, struct i2c_msg *msgs, size_t count);
 int i2c_close(i2c_t *i2c);
+void i2c_free(i2c_t *i2c);
 
 /* Miscellaneous */
 int i2c_fd(i2c_t *i2c);
@@ -40,6 +42,15 @@ const char *i2c_errmsg(i2c_t *i2c);
 ```
 
 ### DESCRIPTION
+
+``` c
+i2c_t *i2c_new(void);
+```
+Allocate an I2C handle.
+
+Returns a valid handle on success, or NULL on failure.
+
+------
 
 ``` c
 int i2c_open(i2c_t *i2c, const char *device);
@@ -73,6 +84,13 @@ Close the `i2c-dev` device.
 `i2c` should be a valid pointer to an I2C handle opened with `i2c_open()`.
 
 Returns 0 on success, or a negative [I2C error code](#return-value) on failure.
+
+------
+
+``` c
+void i2c_free(i2c_t *i2c);
+```
+Free an I2C handle.
 
 ------
 
@@ -141,11 +159,13 @@ The libc errno of the failure in an underlying libc library call can be obtained
 #define EEPROM_I2C_ADDR 0x50
 
 int main(void) {
-    i2c_t i2c;
+    i2c_t *i2c;
+
+    i2c = i2c_new();
 
     /* Open the i2c-0 bus */
-    if (i2c_open(&i2c, "/dev/i2c-0") < 0) {
-        fprintf(stderr, "i2c_open(): %s\n", i2c_errmsg(&i2c));
+    if (i2c_open(i2c, "/dev/i2c-0") < 0) {
+        fprintf(stderr, "i2c_open(): %s\n", i2c_errmsg(i2c));
         exit(1);
     }
 
@@ -161,14 +181,17 @@ int main(void) {
         };
 
     /* Transfer a transaction with two I2C messages */
-    if (i2c_transfer(&i2c, msgs, 2) < 0) {
-        fprintf(stderr, "i2c_transfer(): %s\n", i2c_errmsg(&i2c));
+    if (i2c_transfer(i2c, msgs, 2) < 0) {
+        fprintf(stderr, "i2c_transfer(): %s\n", i2c_errmsg(i2c));
         exit(1);
     }
 
     printf("0x%02x%02x: %02x\n", msg_addr[0], msg_addr[1], msg_data[0]);
 
-    i2c_close(&i2c);
+    i2c_close(i2c);
+
+    i2c_free(i2c);
+
     return 0;
 }
 ```
