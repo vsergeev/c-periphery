@@ -26,16 +26,6 @@ enum gpio_error_code {
     GPIO_ERROR_GET_EDGE             = -9, /* Getting GPIO interrupt edge */
 };
 
-typedef struct gpio_handle {
-    unsigned int pin;
-    int fd;
-
-    struct {
-        int c_errno;
-        char errmsg[96];
-    } error;
-} gpio_t;
-
 typedef enum gpio_direction {
     GPIO_DIR_IN,        /* Input */
     GPIO_DIR_OUT,       /* Output, initialized to low */
@@ -51,12 +41,16 @@ typedef enum gpio_edge {
     GPIO_EDGE_BOTH      /* Both edges X -> !X */
 } gpio_edge_t;
 
+typedef struct gpio_handle gpio_t;
+
 /* Primary Functions */
+gpio_t *gpio_new(void);
 int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction);
 int gpio_read(gpio_t *gpio, bool *value);
 int gpio_write(gpio_t *gpio, bool value);
 int gpio_poll(gpio_t *gpio, int timeout_ms);
 int gpio_close(gpio_t *gpio);
+void gpio_free(gpio_t *gpio);
 
 /* Getters */
 int gpio_supports_interrupts(gpio_t *gpio, bool *supported);

@@ -8,11 +8,13 @@ GPIO wrapper functions for Linux userspace sysfs GPIOs.
 #include <periphery/gpio.md>
 
 /* Primary Functions */
+gpio_t *gpio_new(void);
 int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction);
 int gpio_read(gpio_t *gpio, bool *value);
 int gpio_write(gpio_t *gpio, bool value);
 int gpio_poll(gpio_t *gpio, int timeout_ms);
 int gpio_close(gpio_t *gpio);
+void gpio_free(gpio_t *gpio);
 
 /* Getters */
 int gpio_supports_interrupts(gpio_t *gpio, bool *supported);
@@ -49,6 +51,15 @@ const char *gpio_errmsg(gpio_t *gpio);
     * `GPIO_EDGE_BOTH`: Both edges (X -> !X transition)
 
 ### DESCRIPTION
+
+``` c
+gpio_t *gpio_new(void);
+```
+Allocate a GPIO handle.
+
+Returns a valid handle on success, or NULL on failure.
+
+------
 
 ``` c
 int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction);
@@ -102,6 +113,13 @@ Close the sysfs GPIO.
 `gpio` should be a valid pointer to a GPIO handle opened with `gpio_open()`.
 
 Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
+
+------
+
+``` c
+void gpio_free(gpio_t *gpio);
+```
+Free a GPIO handle.
 
 ------
 
@@ -221,35 +239,42 @@ The libc errno of the failure in an underlying libc library call can be obtained
 #include "gpio.h"
 
 int main(void) {
-    gpio_t gpio_in, gpio_out;
+    gpio_t *gpio_in, *gpio_out;
     bool value;
 
+    gpio_in = gpio_new();
+    gpio_out = gpio_new();
+
     /* Open GPIO 10 with input direction */
-    if (gpio_open(&gpio_in, 10, GPIO_DIR_IN) < 0) {
-        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(&gpio_in));
+    if (gpio_open(gpio_in, 10, GPIO_DIR_IN) < 0) {
+        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_in));
         exit(1);
     }
 
     /* Open GPIO 12 with output direction */
-    if (gpio_open(&gpio_out, 12, GPIO_DIR_OUT) < 0) {
-        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(&gpio_out));
+    if (gpio_open(gpio_out, 12, GPIO_DIR_OUT) < 0) {
+        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_out));
         exit(1);
     }
 
     /* Read input GPIO into value */
-    if (gpio_read(&gpio_in, &value) < 0) {
-        fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(&gpio_in));
+    if (gpio_read(gpio_in, &value) < 0) {
+        fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(gpio_in));
         exit(1);
     }
 
     /* Write output GPIO with !value */
-    if (gpio_write(&gpio_out, !value) < 0) {
-        fprintf(stderr, "gpio_write(): %s\n", gpio_errmsg(&gpio_out));
+    if (gpio_write(gpio_out, !value) < 0) {
+        fprintf(stderr, "gpio_write(): %s\n", gpio_errmsg(gpio_out));
         exit(1);
     }
 
-    gpio_close(&gpio_in);
-    gpio_close(&gpio_out);
+    gpio_close(gpio_in);
+    gpio_close(gpio_out);
+
+    gpio_free(gpio_in);
+    gpio_free(gpio_out);
+
     return 0;
 }
 ```

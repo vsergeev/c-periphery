@@ -39,7 +39,17 @@ static const char *gpio_edge_to_string[] = {
     [GPIO_EDGE_BOTH]      = "both",
 };
 
-static int _gpio_error(struct gpio_handle *gpio, int code, int c_errno, const char *fmt, ...) {
+struct gpio_handle {
+    unsigned int pin;
+    int fd;
+
+    struct {
+        int c_errno;
+        char errmsg[96];
+    } error;
+};
+
+static int _gpio_error(gpio_t *gpio, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
 
     gpio->error.c_errno = c_errno;
@@ -56,6 +66,14 @@ static int _gpio_error(struct gpio_handle *gpio, int code, int c_errno, const ch
     }
 
     return code;
+}
+
+gpio_t *gpio_new(void) {
+    return malloc(sizeof(gpio_t));
+}
+
+void gpio_free(gpio_t *gpio) {
+    free(gpio);
 }
 
 int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
@@ -113,7 +131,7 @@ int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
             return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: closing 'direction'");
     }
 
-    memset(gpio, 0, sizeof(struct gpio_handle));
+    memset(gpio, 0, sizeof(gpio_t));
     gpio->pin = pin;
 
     /* Open value */
