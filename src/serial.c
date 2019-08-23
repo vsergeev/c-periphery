@@ -23,7 +23,16 @@
 
 #include "serial.h"
 
-static int _serial_error(struct serial_handle *serial, int code, int c_errno, const char *fmt, ...) {
+struct serial_handle {
+    int fd;
+
+    struct {
+        int c_errno;
+        char errmsg[96];
+    } error;
+};
+
+static int _serial_error(serial_t *serial, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
 
     serial->error.c_errno = c_errno;
@@ -40,6 +49,14 @@ static int _serial_error(struct serial_handle *serial, int code, int c_errno, co
     }
 
     return code;
+}
+
+serial_t *serial_new(void) {
+    return malloc(sizeof(serial_t));
+}
+
+void serial_free(serial_t *serial) {
+    free(serial);
 }
 
 static int _serial_baudrate_to_bits(uint32_t baudrate) {
@@ -146,7 +163,7 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
     if (stopbits != 1 && stopbits != 2)
         return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid stop bits (can be 1,2)");
 
-    memset(serial, 0, sizeof(struct serial_handle));
+    memset(serial, 0, sizeof(serial_t));
 
     /* Open serial port */
     if ((serial->fd = open(path, O_RDWR | O_NOCTTY)) < 0)

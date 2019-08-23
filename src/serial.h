@@ -24,22 +24,16 @@ enum serial_error_code {
     SERIAL_ERROR_CLOSE          = -7, /* Closing serial port */
 };
 
-typedef struct serial_handle {
-    int fd;
-
-    struct {
-        int c_errno;
-        char errmsg[96];
-    } error;
-} serial_t;
-
 typedef enum serial_parity {
     PARITY_NONE,
     PARITY_ODD,
     PARITY_EVEN,
 } serial_parity_t;
 
+typedef struct serial_handle serial_t;
+
 /* Primary Functions */
+serial_t *serial_new(void);
 int serial_open(serial_t *serial, const char *path, uint32_t baudrate);
 int serial_open_advanced(serial_t *serial, const char *path,
                             uint32_t baudrate, unsigned int databits,
@@ -52,6 +46,7 @@ int serial_input_waiting(serial_t *serial, unsigned int *count);
 int serial_output_waiting(serial_t *serial, unsigned int *count);
 int serial_poll(serial_t *serial, int timeout_ms);
 int serial_close(serial_t *serial);
+void serial_free(serial_t *serial);
 
 /* Getters */
 int serial_get_baudrate(serial_t *serial, uint32_t *baudrate);

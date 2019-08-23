@@ -8,6 +8,7 @@ Serial wrapper functions for Linux userspace termios `tty` devices.
 #include <periphery/serial.h>
 
 /* Primary Functions */
+serial_t *serial_new(void);
 int serial_open(serial_t *serial, const char *path, uint32_t baudrate);
 int serial_open_advanced(serial_t *serial, const char *path,
                             uint32_t baudrate, unsigned int databits,
@@ -20,6 +21,7 @@ int serial_input_waiting(serial_t *serial, unsigned int *count);
 int serial_output_waiting(serial_t *serial, unsigned int *count);
 int serial_poll(serial_t *serial, int timeout_ms);
 int serial_close(serial_t *serial);
+void serial_free(serial_t *serial);
 
 /* Getters */
 int serial_get_baudrate(serial_t *serial, uint32_t *baudrate);
@@ -54,6 +56,15 @@ const char *serial_errmsg(serial_t *serial);
     * `PARITY_EVEN`: Even parity
 
 ### DESCRIPTION
+
+``` c
+serial_t *serial_new(void);
+```
+Allocate a Serial handle.
+
+Returns a valid handle on success, or NULL on failure.
+
+------
 
 ``` c
 int serial_open(serial_t *serial, const char *path, uint32_t baudrate);
@@ -158,6 +169,13 @@ Returns 0 on success, or a negative [Serial error code](#return-value) on failur
 ------
 
 ``` c
+void serial_free(serial_t *serial);
+```
+Free a Serial handle.
+
+------
+
+``` c
 int serial_get_baudrate(serial_t *serial, uint32_t *baudrate);
 int serial_get_databits(serial_t *serial, unsigned int *databits);
 int serial_get_parity(serial_t *serial, serial_parity_t *parity);
@@ -251,32 +269,37 @@ The libc errno of the failure in an underlying libc library call can be obtained
 #include "serial.h"
 
 int main(void) {
-    serial_t serial;
+    serial_t *serial;
     const char *s = "Hello World!";
     char buf[128];
     int ret;
 
+    serial = serial_new();
+
     /* Open /dev/ttyUSB0 with baudrate 115200, and defaults of 8N1, no flow control */
-    if (serial_open(&serial, "/dev/ttyUSB0", 115200) < 0) {
-        fprintf(stderr, "serial_open(): %s\n", serial_errmsg(&serial));
+    if (serial_open(serial, "/dev/ttyUSB0", 115200) < 0) {
+        fprintf(stderr, "serial_open(): %s\n", serial_errmsg(serial));
         exit(1);
     }
 
     /* Write to the serial port */
-    if (serial_write(&serial, s, strlen(s)) < 0) {
-        fprintf(stderr, "serial_write(): %s\n", serial_errmsg(&serial));
+    if (serial_write(serial, s, strlen(s)) < 0) {
+        fprintf(stderr, "serial_write(): %s\n", serial_errmsg(serial));
         exit(1);
     }
 
     /* Read up to buf size or 2000ms timeout */
-    if ((ret = serial_read(&serial, buf, sizeof(buf), 2000)) < 0) {
-        fprintf(stderr, "serial_read(): %s\n", serial_errmsg(&serial));
+    if ((ret = serial_read(serial, buf, sizeof(buf), 2000)) < 0) {
+        fprintf(stderr, "serial_read(): %s\n", serial_errmsg(serial));
         exit(1);
     }
 
     printf("read %d bytes: _%s_\n", ret, buf);
 
-    serial_close(&serial);
+    serial_close(serial);
+
+    serial_free(serial);
+
     return 0;
 }
 ```
