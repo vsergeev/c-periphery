@@ -18,7 +18,18 @@
 
 #include "mmio.h"
 
-static int _mmio_error(struct mmio_handle *mmio, int code, int c_errno, const char *fmt, ...) {
+struct mmio_handle {
+    uintptr_t base, aligned_base;
+    size_t size, aligned_size;
+    void *ptr;
+
+    struct {
+        int c_errno;
+        char errmsg[96];
+    } error;
+};
+
+static int _mmio_error(mmio_t *mmio, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
 
     mmio->error.c_errno = c_errno;
@@ -37,10 +48,18 @@ static int _mmio_error(struct mmio_handle *mmio, int code, int c_errno, const ch
     return code;
 }
 
+mmio_t *mmio_new(void) {
+    return malloc(sizeof(mmio_t));
+}
+
+void mmio_free(mmio_t *mmio) {
+    free(mmio);
+}
+
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
     int fd;
 
-    memset(mmio, 0, sizeof(struct mmio_handle));
+    memset(mmio, 0, sizeof(mmio_t));
     mmio->base = base;
     mmio->size = size;
     mmio->aligned_base = mmio->base - (mmio->base % sysconf(_SC_PAGESIZE));

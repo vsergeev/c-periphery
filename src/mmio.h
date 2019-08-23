@@ -23,18 +23,10 @@ enum mmio_error_code {
     MMIO_ERROR_UNMAP        = -5, /* Unmapping memory */
 };
 
-typedef struct mmio_handle {
-    uintptr_t base, aligned_base;
-    size_t size, aligned_size;
-    void *ptr;
-
-    struct {
-        int c_errno;
-        char errmsg[96];
-    } error;
-} mmio_t;
+typedef struct mmio_handle mmio_t;
 
 /* Primary Functions */
+mmio_t *mmio_new(void);
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size);
 void *mmio_ptr(mmio_t *mmio);
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value);
@@ -46,6 +38,7 @@ int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value);
 int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value);
 int mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len);
 int mmio_close(mmio_t *mmio);
+void mmio_free(mmio_t *mmio);
 
 /* Miscellaneous */
 uintptr_t mmio_base(mmio_t *mmio);

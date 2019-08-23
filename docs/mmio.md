@@ -8,6 +8,7 @@ MMIO wrapper functions for the Linux userspace `/dev/mem` device.
 #include <periphery/mmio.h>
 
 /* Primary Functions */
+mmio_t *mmio_new(void);
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size);
 void *mmio_ptr(mmio_t *mmio);
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value);
@@ -19,6 +20,7 @@ int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value);
 int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value);
 int mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len);
 int mmio_close(mmio_t *mmio);
+void mmio_free(mmio_t *mmio);
 
 /* Miscellaneous */
 uintptr_t mmio_base(mmio_t *mmio);
@@ -31,6 +33,15 @@ const char *mmio_errmsg(mmio_t *mmio);
 ```
 
 ### DESCRIPTION
+
+``` c
+mmio_t *mmio_new(void);
+```
+Allocate a MMIO handle.
+
+Returns a valid handle on success, or NULL on failure.
+
+------
 
 ``` c
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size);
@@ -88,6 +99,13 @@ Unmap mapped physical memory.
 `mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
 
 Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
+
+------
+
+``` c
+void mmio_free(mmio_t *mmio);
+```
+Free a MMIO handle.
 
 ------
 
@@ -171,44 +189,48 @@ struct am335x_rtcss_registers {
 };
 
 int main(void) {
-    mmio_t mmio;
+    mmio_t *mmio;
     uint32_t mac_id0_lo, mac_id0_hi;
     volatile struct am335x_rtcss_registers *regs;
 
+    mmio = mmio_new();
+
     /* Open control module */
-    if (mmio_open(&mmio, 0x44E10000, 0x1000) < 0) {
-        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_open(mmio, 0x44E10000, 0x1000) < 0) {
+        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
     /* Read lower 2 bytes of MAC address */
-    if (mmio_read32(&mmio, 0x630, &mac_id0_lo) < 0) {
-        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_read32(mmio, 0x630, &mac_id0_lo) < 0) {
+        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
     /* Read upper 4 bytes of MAC address */
-    if (mmio_read32(&mmio, 0x634, &mac_id0_hi) < 0) {
-        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_read32(mmio, 0x634, &mac_id0_hi) < 0) {
+        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
     printf("MAC address: %04x%08x\n", mac_id0_lo, mac_id0_hi);
 
-    mmio_close(&mmio);
+    mmio_close(mmio);
 
     /* Open RTC subsystem */
-    if (mmio_open(&mmio, 0x44E3E000, 0x1000) < 0) {
-        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_open(mmio, 0x44E3E000, 0x1000) < 0) {
+        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
-    regs = mmio_ptr(&mmio);
+    regs = mmio_ptr(mmio);
 
     /* Read current RTC time */
     printf("hours: %02x minutes: %02x seconds %02x\n", regs->hours, regs->minutes, regs->seconds);
 
-    mmio_close(&mmio);
+    mmio_close(mmio);
+
+    mmio_free(mmio);
 
     return 0;
 }
