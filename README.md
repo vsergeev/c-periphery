@@ -2,7 +2,7 @@
 
 ## C Library for Linux Peripheral I/O (GPIO, SPI, I2C, MMIO, Serial)
 
-c-periphery is a small C library for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. c-periphery simplifies and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including BeagleBone, Raspberry Pi, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, uses static allocations, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
+c-periphery is a small C library for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. c-periphery simplifies and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including Raspberry Pi, BeagleBone, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
 
 Using Python or Lua? Check out the [python-periphery](https://github.com/vsergeev/python-periphery) and [lua-periphery](https://github.com/vsergeev/lua-periphery) projects.
 
@@ -18,35 +18,42 @@ Using Python or Lua? Check out the [python-periphery](https://github.com/vsergee
 #include "gpio.h"
 
 int main(void) {
-    gpio_t gpio_in, gpio_out;
+    gpio_t *gpio_in, *gpio_out;
     bool value;
 
+    gpio_in = gpio_new();
+    gpio_out = gpio_new();
+
     /* Open GPIO 10 with input direction */
-    if (gpio_open(&gpio_in, 10, GPIO_DIR_IN) < 0) {
-        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(&gpio_in));
+    if (gpio_open(gpio_in, 10, GPIO_DIR_IN) < 0) {
+        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_in));
         exit(1);
     }
 
     /* Open GPIO 12 with output direction */
-    if (gpio_open(&gpio_out, 12, GPIO_DIR_OUT) < 0) {
-        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(&gpio_out));
+    if (gpio_open(gpio_out, 12, GPIO_DIR_OUT) < 0) {
+        fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_out));
         exit(1);
     }
 
     /* Read input GPIO into value */
-    if (gpio_read(&gpio_in, &value) < 0) {
-        fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(&gpio_in));
+    if (gpio_read(gpio_in, &value) < 0) {
+        fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(gpio_in));
         exit(1);
     }
 
     /* Write output GPIO with !value */
-    if (gpio_write(&gpio_out, !value) < 0) {
-        fprintf(stderr, "gpio_write(): %s\n", gpio_errmsg(&gpio_out));
+    if (gpio_write(gpio_out, !value) < 0) {
+        fprintf(stderr, "gpio_write(): %s\n", gpio_errmsg(gpio_out));
         exit(1);
     }
 
-    gpio_close(&gpio_in);
-    gpio_close(&gpio_out);
+    gpio_close(gpio_in);
+    gpio_close(gpio_out);
+
+    gpio_free(gpio_in);
+    gpio_free(gpio_out);
+
     return 0;
 }
 ```
@@ -63,24 +70,29 @@ int main(void) {
 #include "spi.h"
 
 int main(void) {
-    spi_t spi;
+    spi_t *spi;
     uint8_t buf[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 
+    spi = spi_new();
+
     /* Open spidev1.0 with mode 0 and max speed 1MHz */
-    if (spi_open(&spi, "/dev/spidev1.0", 0, 1000000) < 0) {
-        fprintf(stderr, "spi_open(): %s\n", spi_errmsg(&spi));
+    if (spi_open(spi, "/dev/spidev1.0", 0, 1000000) < 0) {
+        fprintf(stderr, "spi_open(): %s\n", spi_errmsg(spi));
         exit(1);
     }
 
     /* Shift out and in 4 bytes */
-    if (spi_transfer(&spi, buf, buf, sizeof(buf)) < 0) {
-        fprintf(stderr, "spi_transfer(): %s\n", spi_errmsg(&spi));
+    if (spi_transfer(spi, buf, buf, sizeof(buf)) < 0) {
+        fprintf(stderr, "spi_transfer(): %s\n", spi_errmsg(spi));
         exit(1);
     }
 
     printf("shifted in: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0], buf[1], buf[2], buf[3]);
 
-    spi_close(&spi);
+    spi_close(spi);
+
+    spi_free(spi);
+
     return 0;
 }
 ```
@@ -99,11 +111,13 @@ int main(void) {
 #define EEPROM_I2C_ADDR 0x50
 
 int main(void) {
-    i2c_t i2c;
+    i2c_t *i2c;
+
+    i2c = i2c_new();
 
     /* Open the i2c-0 bus */
-    if (i2c_open(&i2c, "/dev/i2c-0") < 0) {
-        fprintf(stderr, "i2c_open(): %s\n", i2c_errmsg(&i2c));
+    if (i2c_open(i2c, "/dev/i2c-0") < 0) {
+        fprintf(stderr, "i2c_open(): %s\n", i2c_errmsg(i2c));
         exit(1);
     }
 
@@ -119,14 +133,17 @@ int main(void) {
         };
 
     /* Transfer a transaction with two I2C messages */
-    if (i2c_transfer(&i2c, msgs, 2) < 0) {
-        fprintf(stderr, "i2c_transfer(): %s\n", i2c_errmsg(&i2c));
+    if (i2c_transfer(i2c, msgs, 2) < 0) {
+        fprintf(stderr, "i2c_transfer(): %s\n", i2c_errmsg(i2c));
         exit(1);
     }
 
     printf("0x%02x%02x: %02x\n", msg_addr[0], msg_addr[1], msg_data[0]);
 
-    i2c_close(&i2c);
+    i2c_close(i2c);
+
+    i2c_free(i2c);
+
     return 0;
 }
 ```
@@ -151,44 +168,48 @@ struct am335x_rtcss_registers {
 };
 
 int main(void) {
-    mmio_t mmio;
+    mmio_t *mmio;
     uint32_t mac_id0_lo, mac_id0_hi;
     volatile struct am335x_rtcss_registers *regs;
 
+    mmio = mmio_new();
+
     /* Open Control Module */
-    if (mmio_open(&mmio, 0x44E10000, 0x1000) < 0) {
-        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_open(mmio, 0x44E10000, 0x1000) < 0) {
+        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
     /* Read lower 2 bytes of MAC address */
-    if (mmio_read32(&mmio, 0x630, &mac_id0_lo) < 0) {
-        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_read32(mmio, 0x630, &mac_id0_lo) < 0) {
+        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
     /* Read upper 4 bytes of MAC address */
-    if (mmio_read32(&mmio, 0x634, &mac_id0_hi) < 0) {
-        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_read32(mmio, 0x634, &mac_id0_hi) < 0) {
+        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
     printf("MAC address: %08X%04X\n", __bswap_32(mac_id0_hi), __bswap_16(mac_id0_lo));
 
-    mmio_close(&mmio);
+    mmio_close(mmio);
 
     /* Open RTC subsystem */
-    if (mmio_open(&mmio, 0x44E3E000, 0x1000) < 0) {
-        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(&mmio));
+    if (mmio_open(mmio, 0x44E3E000, 0x1000) < 0) {
+        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
-    regs = mmio_ptr(&mmio);
+    regs = mmio_ptr(mmio);
 
     /* Read current RTC time */
     printf("hours: %02x minutes: %02x seconds %02x\n", regs->hours, regs->minutes, regs->seconds);
 
-    mmio_close(&mmio);
+    mmio_close(mmio);
+
+    mmio_free(mmio);
 
     return 0;
 }
@@ -206,32 +227,37 @@ int main(void) {
 #include "serial.h"
 
 int main(void) {
-    serial_t serial;
+    serial_t *serial;
     uint8_t s[] = "Hello World!";
     uint8_t buf[128];
     int ret;
 
+    serial = serial_new();
+
     /* Open /dev/ttyUSB0 with baudrate 115200, and defaults of 8N1, no flow control */
-    if (serial_open(&serial, "/dev/ttyUSB0", 115200) < 0) {
-        fprintf(stderr, "serial_open(): %s\n", serial_errmsg(&serial));
+    if (serial_open(serial, "/dev/ttyUSB0", 115200) < 0) {
+        fprintf(stderr, "serial_open(): %s\n", serial_errmsg(serial));
         exit(1);
     }
 
     /* Write to the serial port */
-    if (serial_write(&serial, s, sizeof(s)) < 0) {
-        fprintf(stderr, "serial_write(): %s\n", serial_errmsg(&serial));
+    if (serial_write(serial, s, sizeof(s)) < 0) {
+        fprintf(stderr, "serial_write(): %s\n", serial_errmsg(serial));
         exit(1);
     }
 
     /* Read up to buf size or 2000ms timeout */
-    if ((ret = serial_read(&serial, buf, sizeof(buf), 2000)) < 0) {
-        fprintf(stderr, "serial_read(): %s\n", serial_errmsg(&serial));
+    if ((ret = serial_read(serial, buf, sizeof(buf), 2000)) < 0) {
+        fprintf(stderr, "serial_read(): %s\n", serial_errmsg(serial));
         exit(1);
     }
 
     printf("read %d bytes: _%s_\n", ret, buf);
 
-    serial_close(&serial);
+    serial_close(serial);
+
+    serial_free(serial);
+
     return 0;
 }
 ```
