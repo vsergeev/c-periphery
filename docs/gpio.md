@@ -5,7 +5,7 @@ GPIO wrapper functions for Linux userspace sysfs GPIOs.
 ### SYNOPSIS
 
 ``` c
-#include <periphery/gpio.md>
+#include <periphery/gpio.h>
 
 /* Primary Functions */
 gpio_t *gpio_new(void);
