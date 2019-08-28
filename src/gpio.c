@@ -19,35 +19,128 @@
 
 #include "gpio.h"
 
-#define P_PATH_MAX  256
-/* Delay between checks for successful GPIO export (100ms) */
-#define GPIO_EXPORT_STAT_DELAY      100000
-/* Number of retries to check for successful GPIO exports */
-#define GPIO_EXPORT_STAT_RETRIES    10
+/*********************************************************************************/
+/* Operations table and handle structure */
+/*********************************************************************************/
 
-static const char *gpio_direction_to_string[] = {
-    [GPIO_DIR_IN]         = "in",
-    [GPIO_DIR_OUT]        = "out",
-    [GPIO_DIR_OUT_LOW]    = "low",
-    [GPIO_DIR_OUT_HIGH]   = "high",
-};
-
-static const char *gpio_edge_to_string[] = {
-    [GPIO_EDGE_NONE]      = "none",
-    [GPIO_EDGE_RISING]    = "rising",
-    [GPIO_EDGE_FALLING]   = "falling",
-    [GPIO_EDGE_BOTH]      = "both",
+struct gpio_ops {
+    int (*read)(gpio_t *gpio, bool *value);
+    int (*write)(gpio_t *gpio, bool value);
+    int (*read_event)(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
+    int (*poll)(gpio_t *gpio, int timeout_ms);
+    int (*close)(gpio_t *gpio);
+    int (*get_direction)(gpio_t *gpio, gpio_direction_t *direction);
+    int (*get_edge)(gpio_t *gpio, gpio_edge_t *edge);
+    int (*set_direction)(gpio_t *gpio, gpio_direction_t direction);
+    int (*set_edge)(gpio_t *gpio, gpio_edge_t edge);
+    unsigned int (*line)(gpio_t *gpio);
+    int (*fd)(gpio_t *gpio);
+    int (*name)(gpio_t *gpio, char *str, size_t len);
+    int (*chip_fd)(gpio_t *gpio);
+    int (*chip_name)(gpio_t *gpio, char *str, size_t len);
+    int (*chip_label)(gpio_t *gpio, char *str, size_t len);
+    int (*tostring)(gpio_t *gpio, char *str, size_t len);
 };
 
 struct gpio_handle {
-    unsigned int pin;
-    int fd;
+    const struct gpio_ops *ops;
+    unsigned int line;
+    int line_fd;
 
+    /* error state */
     struct {
         int c_errno;
         char errmsg[96];
     } error;
 };
+
+/*********************************************************************************/
+/* Public interface, except for open()s */
+/*********************************************************************************/
+
+gpio_t *gpio_new(void) {
+    return malloc(sizeof(gpio_t));
+}
+
+void gpio_free(gpio_t *gpio) {
+    free(gpio);
+}
+
+const char *gpio_errmsg(gpio_t *gpio) {
+    return gpio->error.errmsg;
+}
+
+int gpio_errno(gpio_t *gpio) {
+    return gpio->error.c_errno;
+}
+
+int gpio_read(gpio_t *gpio, bool *value) {
+    return gpio->ops->read(gpio, value);
+}
+
+int gpio_write(gpio_t *gpio, bool value) {
+    return gpio->ops->write(gpio, value);
+}
+
+int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
+    return gpio->ops->read_event(gpio, edge, timestamp);
+}
+
+int gpio_poll(gpio_t *gpio, int timeout_ms) {
+    return gpio->ops->poll(gpio, timeout_ms);
+}
+
+int gpio_close(gpio_t *gpio) {
+    return gpio->ops->close(gpio);
+}
+
+int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
+    return gpio->ops->get_direction(gpio, direction);
+}
+
+int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
+    return gpio->ops->get_edge(gpio, edge);
+}
+
+int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction) {
+    return gpio->ops->set_direction(gpio, direction);
+}
+
+int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge) {
+    return gpio->ops->set_edge(gpio, edge);
+}
+
+unsigned int gpio_line(gpio_t *gpio) {
+    return gpio->ops->line(gpio);
+}
+
+int gpio_fd(gpio_t *gpio) {
+    return gpio->ops->fd(gpio);
+}
+
+int gpio_name(gpio_t *gpio, char *str, size_t len) {
+    return gpio->ops->name(gpio, str, len);
+}
+
+int gpio_chip_fd(gpio_t *gpio) {
+    return gpio->ops->chip_fd(gpio);
+}
+
+int gpio_chip_name(gpio_t *gpio, char *str, size_t len) {
+    return gpio->ops->chip_name(gpio, str, len);
+}
+
+int gpio_chip_label(gpio_t *gpio, char *str, size_t len) {
+    return gpio->ops->chip_label(gpio, str, len);
+}
+
+int gpio_tostring(gpio_t *gpio, char *str, size_t len) {
+    return gpio->ops->tostring(gpio, str, len);
+}
+
+/*********************************************************************************/
+/* Common error formatting function */
+/*********************************************************************************/
 
 static int _gpio_error(gpio_t *gpio, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
@@ -68,102 +161,53 @@ static int _gpio_error(gpio_t *gpio, int code, int c_errno, const char *fmt, ...
     return code;
 }
 
-gpio_t *gpio_new(void) {
-    return malloc(sizeof(gpio_t));
-}
+/*********************************************************************************/
+/* sysfs implementation */
+/*********************************************************************************/
 
-void gpio_free(gpio_t *gpio) {
-    free(gpio);
-}
+#define P_PATH_MAX  256
 
-int gpio_open(gpio_t *gpio, unsigned int pin, gpio_direction_t direction) {
-    char gpio_path[P_PATH_MAX];
-    struct stat stat_buf;
-    char buf[16];
-    int fd;
+/* Delay between checks for successful GPIO export (100ms) */
+#define GPIO_SYSFS_EXPORT_STAT_DELAY      100000
+/* Number of retries to check for successful GPIO exports */
+#define GPIO_SYSFS_EXPORT_STAT_RETRIES    10
 
-    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH && direction != GPIO_DIR_PRESERVE)
-        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high, preserve)");
+static const char *gpio_sysfs_direction_to_string[] = {
+    [GPIO_DIR_IN]         = "in",
+    [GPIO_DIR_OUT]        = "out",
+    [GPIO_DIR_OUT_LOW]    = "low",
+    [GPIO_DIR_OUT_HIGH]   = "high",
+};
 
-    /* Check if GPIO directory exists */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d", pin);
-    if (stat(gpio_path, &stat_buf) < 0) {
-        /* Write pin number to export file */
-        snprintf(buf, sizeof(buf), "%d", pin);
-        if ((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
-            return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: opening 'export'");
-        if (write(fd, buf, strlen(buf)+1) < 0) {
-            int errsv = errno;
-            close(fd);
-            return _gpio_error(gpio, GPIO_ERROR_EXPORT, errsv, "Exporting GPIO: writing 'export'");
-        }
-        if (close(fd) < 0)
-            return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: closing 'export'");
+static const char *gpio_sysfs_edge_to_string[] = {
+    [GPIO_EDGE_NONE]      = "none",
+    [GPIO_EDGE_RISING]    = "rising",
+    [GPIO_EDGE_FALLING]   = "falling",
+    [GPIO_EDGE_BOTH]      = "both",
+};
 
-        /* Wait until GPIO directory appears */
-        unsigned int retry_count;
-        for (retry_count = 0; retry_count < GPIO_EXPORT_STAT_RETRIES; retry_count++) {
-            int ret = stat(gpio_path, &stat_buf);
-            if (ret == 0)
-                break;
-            else if (ret < 0 && errno != ENOENT)
-                return _gpio_error(gpio, GPIO_ERROR_EXPORT, errno, "Exporting GPIO: stat 'gpio%d/'", pin);
-
-            usleep(GPIO_EXPORT_STAT_DELAY);
-        }
-
-        if (retry_count == GPIO_EXPORT_STAT_RETRIES)
-            return _gpio_error(gpio, GPIO_ERROR_EXPORT, 0, "Exporting GPIO: waiting for 'gpio%d/' timed out", pin);
-    }
-
-    /* If not preserving existing direction */
-    if (direction != GPIO_DIR_PRESERVE) {
-        /* Write direction */
-        snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", pin);
-        if ((fd = open(gpio_path, O_WRONLY)) < 0)
-            return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: opening 'direction'");
-        if (write(fd, gpio_direction_to_string[direction], strlen(gpio_direction_to_string[direction])+1) < 0) {
-            int errsv = errno;
-            close(fd);
-            return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errsv, "Configuring GPIO: writing 'direction'");
-        }
-        if (close(fd) < 0)
-            return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Configuring GPIO: closing 'direction'");
-    }
-
-    memset(gpio, 0, sizeof(gpio_t));
-    gpio->pin = pin;
-
-    /* Open value */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/value", pin);
-    if ((gpio->fd = open(gpio_path, O_RDWR)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO 'gpio%d/value'", pin);
-
-    return 0;
-}
-
-int gpio_close(gpio_t *gpio) {
-    if (gpio->fd < 0)
+static int gpio_sysfs_close(gpio_t *gpio) {
+    if (gpio->line_fd < 0)
         return 0;
 
     /* Close fd */
-    if (close(gpio->fd) < 0)
+    if (close(gpio->line_fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO 'value'");
 
-    gpio->fd = -1;
+    gpio->line_fd = -1;
 
     return 0;
 }
 
-int gpio_read(gpio_t *gpio, bool *value) {
+static int gpio_sysfs_read(gpio_t *gpio, bool *value) {
     char buf[2];
 
     /* Read fd */
-    if (read(gpio->fd, buf, 2) < 0)
+    if (read(gpio->line_fd, buf, 2) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Reading GPIO 'value'");
 
     /* Rewind */
-    if (lseek(gpio->fd, 0, SEEK_SET) < 0)
+    if (lseek(gpio->line_fd, 0, SEEK_SET) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Rewinding GPIO 'value'");
 
     if (buf[0] == '0')
@@ -176,26 +220,30 @@ int gpio_read(gpio_t *gpio, bool *value) {
     return 0;
 }
 
-int gpio_write(gpio_t *gpio, bool value) {
+static int gpio_sysfs_write(gpio_t *gpio, bool value) {
     char value_str[][2] = {"0", "1"};
 
     /* Write fd */
-    if (write(gpio->fd, value_str[value], 2) < 0)
+    if (write(gpio->line_fd, value_str[value], 2) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Writing GPIO 'value'");
 
     /* Rewind */
-    if (lseek(gpio->fd, 0, SEEK_SET) < 0)
+    if (lseek(gpio->line_fd, 0, SEEK_SET) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Rewinding GPIO 'value'");
 
     return 0;
 }
 
-int gpio_poll(gpio_t *gpio, int timeout_ms) {
+static int gpio_sysfs_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support read event");
+}
+
+static int gpio_sysfs_poll(gpio_t *gpio, int timeout_ms) {
     struct pollfd fds[1];
     int ret;
 
     /* Poll */
-    fds[0].fd = gpio->fd;
+    fds[0].fd = gpio->line_fd;
     fds[0].events = POLLPRI | POLLERR;
     if ((ret = poll(fds, 1, timeout_ms)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Polling GPIO 'value'");
@@ -203,7 +251,7 @@ int gpio_poll(gpio_t *gpio, int timeout_ms) {
     /* GPIO edge interrupt occurred */
     if (ret) {
         /* Rewind */
-        if (lseek(gpio->fd, 0, SEEK_SET) < 0)
+        if (lseek(gpio->line_fd, 0, SEEK_SET) < 0)
             return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Rewinding GPIO 'value'");
 
         return 1;
@@ -213,7 +261,7 @@ int gpio_poll(gpio_t *gpio, int timeout_ms) {
     return 0;
 }
 
-int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction) {
+static int gpio_sysfs_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     char gpio_path[P_PATH_MAX];
     int fd;
 
@@ -221,36 +269,36 @@ int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction) {
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
 
     /* Write direction */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", gpio->pin);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", gpio->line);
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Opening GPIO 'direction'");
-    if (write(fd, gpio_direction_to_string[direction], strlen(gpio_direction_to_string[direction])+1) < 0) {
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Opening GPIO 'direction'");
+    if (write(fd, gpio_sysfs_direction_to_string[direction], strlen(gpio_sysfs_direction_to_string[direction])+1) < 0) {
         int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errsv, "Writing GPIO 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errsv, "Writing GPIO 'direction'");
     }
     if (close(fd) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_SET_DIRECTION, errno, "Closing GPIO 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Closing GPIO 'direction'");
 
     return 0;
 }
 
-int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
+static int gpio_sysfs_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
     char gpio_path[P_PATH_MAX];
     char buf[8];
     int fd, ret;
 
     /* Read direction */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", gpio->pin);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", gpio->line);
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, errno, "Opening GPIO 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'direction'");
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
         int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, errsv, "Writing GPIO 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'direction'");
     }
     if (close(fd) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, errno, "Closing GPIO 'direction'");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'direction'");
 
     buf[ret] = '\0';
 
@@ -259,33 +307,12 @@ int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
     else if (strcmp(buf, "out\n") == 0)
         *direction = GPIO_DIR_OUT;
     else
-        return _gpio_error(gpio, GPIO_ERROR_GET_DIRECTION, 0, "Unknown GPIO direction");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, 0, "Unknown GPIO direction");
 
     return 0;
 }
 
-int gpio_supports_interrupts(gpio_t *gpio, bool *supported) {
-    char gpio_path[P_PATH_MAX];
-    struct stat stat_buf;
-
-    /* Check for edge */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->pin);
-
-    if (stat(gpio_path, &stat_buf) < 0) {
-        if (errno == ENOENT) {
-            *supported = false;
-            return 0;
-        }
-
-        /* Other error */
-        return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Exporting GPIO: stat 'gpio%d/edge'", gpio->pin);
-    }
-
-    *supported = true;
-    return 0;
-}
-
-int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge) {
+static int gpio_sysfs_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     char gpio_path[P_PATH_MAX];
     int fd;
 
@@ -293,36 +320,36 @@ int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge) {
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO interrupt edge (can be none, rising, falling, both)");
 
     /* Write edge */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->pin);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->line);
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_SET_EDGE, errno, "Opening GPIO 'edge'");
-    if (write(fd, gpio_edge_to_string[edge], strlen(gpio_edge_to_string[edge])+1) < 0) {
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Opening GPIO 'edge'");
+    if (write(fd, gpio_sysfs_edge_to_string[edge], strlen(gpio_sysfs_edge_to_string[edge])+1) < 0) {
         int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_SET_EDGE, errsv, "Writing GPIO 'edge'");
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errsv, "Writing GPIO 'edge'");
     }
     if (close(fd) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_SET_EDGE, errno, "Closing GPIO 'edge'");
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Closing GPIO 'edge'");
 
     return 0;
 }
 
-int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
+static int gpio_sysfs_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     char gpio_path[P_PATH_MAX];
     char buf[16];
     int fd, ret;
 
     /* Read edge */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->pin);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->line);
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, errno, "Opening GPIO 'edge'");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'edge'");
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
         int errsv = errno;
         close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, errsv, "Writing GPIO 'edge'");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'edge'");
     }
     if (close(fd) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, errno, "Closing GPIO 'edge'");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'edge'");
 
     buf[ret] = '\0';
 
@@ -335,42 +362,201 @@ int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     else if (strcmp(buf, "both\n") == 0)
         *edge = GPIO_EDGE_BOTH;
     else
-        return _gpio_error(gpio, GPIO_ERROR_GET_EDGE, 0, "Unknown GPIO edge");
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, 0, "Unknown GPIO edge");
 
     return 0;
 }
 
-int gpio_tostring(gpio_t *gpio, char *str, size_t len) {
+static unsigned int gpio_sysfs_line(gpio_t *gpio) {
+    return gpio->line;
+}
+
+static int gpio_sysfs_fd(gpio_t *gpio) {
+    return gpio->line_fd;
+}
+
+static int gpio_sysfs_name(gpio_t *gpio, char *str, size_t len) {
+    strncpy(str, "", len);
+    return 0;
+}
+
+static int gpio_sysfs_chip_fd(gpio_t *gpio) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs has no chip fd");
+}
+
+static int gpio_sysfs_chip_name(gpio_t *gpio, char *str, size_t len) {
+    int ret;
+    char gpio_path[P_PATH_MAX];
+    char gpiochip_path[P_PATH_MAX];
+
+    /* Form path to device */
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/device", gpio->line);
+
+    /* Resolve symlink to gpiochip */
+    if ((ret = readlink(gpio_path, gpiochip_path, sizeof(gpiochip_path))) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Reading GPIO chip symlink");
+
+    /* Null-terminate symlink path */
+    gpiochip_path[(ret < P_PATH_MAX) ? ret : (P_PATH_MAX - 1)] = '\0';
+
+    /* Find last / in symlink path */
+    const char *sep = strrchr(gpiochip_path, '/');
+    if (!sep)
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, 0, "Invalid GPIO chip symlink");
+
+    strncpy(str, sep + 1, len);
+    str[len - 1] = '\0';
+
+    return 0;
+}
+
+static int gpio_sysfs_chip_label(gpio_t *gpio, char *str, size_t len) {
+    char gpio_path[P_PATH_MAX];
+    char chip_name[32];
+    int fd, ret;
+
+    if ((ret = gpio_sysfs_chip_name(gpio, chip_name, sizeof(chip_name))) < 0)
+        return ret;
+
+    /* Read gpiochip label */
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/%s/label", chip_name);
+
+    if ((fd = open(gpio_path, O_RDONLY)) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO chip 'label'");
+    if ((ret = read(fd, str, len)) < 0) {
+        int errsv = errno;
+        close(fd);
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO chip 'label'");
+    }
+    if (close(fd) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'label'");
+
+    str[ret - 1] = '\0';
+
+    return 0;
+}
+
+static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
     gpio_direction_t direction;
     const char *direction_str;
     gpio_edge_t edge;
     const char *edge_str;
+    char chip_name[32];
+    const char *chip_name_str;
+    char chip_label[32];
+    const char *chip_label_str;
 
-    if (gpio_get_direction(gpio, &direction) < 0)
+    if (gpio_sysfs_get_direction(gpio, &direction) < 0)
         direction_str = "?";
     else
-        direction_str = gpio_direction_to_string[direction];
+        direction_str = (direction == GPIO_DIR_IN) ? "in" :
+                        (direction == GPIO_DIR_OUT) ? "out" : "unknown";
 
-    if (gpio_get_edge(gpio, &edge) < 0)
+    if (gpio_sysfs_get_edge(gpio, &edge) < 0)
         edge_str = "?";
     else
-        edge_str = gpio_edge_to_string[edge];
+        edge_str = (edge == GPIO_EDGE_NONE) ? "none" :
+                   (edge == GPIO_EDGE_RISING) ? "rising" :
+                   (edge == GPIO_EDGE_FALLING) ? "falling" :
+                   (edge == GPIO_EDGE_BOTH) ? "both" : "unknown";
 
-    return snprintf(str, len, "GPIO %d (fd=%d, direction=%s, edge=%s)", gpio->pin, gpio->fd, direction_str, edge_str);
+    if (gpio_sysfs_chip_name(gpio, chip_name, sizeof(chip_name)) < 0)
+        chip_name_str = "<error>";
+    else
+        chip_name_str = chip_name;
+
+    if (gpio_sysfs_chip_label(gpio, chip_label, sizeof(chip_label)) < 0)
+        chip_label_str = "<error>";
+    else
+        chip_label_str = chip_label;
+
+    return snprintf(str, len, "GPIO %d (fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=sysfs)",
+                    gpio->line, gpio->line_fd, direction_str, edge_str, chip_name_str, chip_label_str);
 }
 
-const char *gpio_errmsg(gpio_t *gpio) {
-    return gpio->error.errmsg;
+static const struct gpio_ops gpio_sysfs_ops = {
+    .read = gpio_sysfs_read,
+    .write = gpio_sysfs_write,
+    .read_event = gpio_sysfs_read_event,
+    .poll = gpio_sysfs_poll,
+    .close = gpio_sysfs_close,
+    .get_direction = gpio_sysfs_get_direction,
+    .get_edge = gpio_sysfs_get_edge,
+    .set_direction = gpio_sysfs_set_direction,
+    .set_edge = gpio_sysfs_set_edge,
+    .line = gpio_sysfs_line,
+    .fd = gpio_sysfs_fd,
+    .name = gpio_sysfs_name,
+    .chip_fd = gpio_sysfs_chip_fd,
+    .chip_name = gpio_sysfs_chip_name,
+    .chip_label = gpio_sysfs_chip_label,
+    .tostring = gpio_sysfs_tostring,
+};
+
+int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction) {
+    char gpio_path[P_PATH_MAX];
+    struct stat stat_buf;
+    char buf[16];
+    int fd;
+
+    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH && direction != GPIO_DIR_PRESERVE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high, preserve)");
+
+    /* Check if GPIO directory exists */
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d", line);
+    if (stat(gpio_path, &stat_buf) < 0) {
+        /* Write line number to export file */
+        snprintf(buf, sizeof(buf), "%d", line);
+        if ((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
+            return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: opening 'export'");
+        if (write(fd, buf, strlen(buf)+1) < 0) {
+            int errsv = errno;
+            close(fd);
+            return _gpio_error(gpio, GPIO_ERROR_OPEN, errsv, "Opening GPIO: writing 'export'");
+        }
+        if (close(fd) < 0)
+            return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: closing 'export'");
+
+        /* Wait until GPIO directory appears */
+        unsigned int retry_count;
+        for (retry_count = 0; retry_count < GPIO_SYSFS_EXPORT_STAT_RETRIES; retry_count++) {
+            int ret = stat(gpio_path, &stat_buf);
+            if (ret == 0)
+                break;
+            else if (ret < 0 && errno != ENOENT)
+                return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: stat 'gpio%d/' after export", line);
+
+            usleep(GPIO_SYSFS_EXPORT_STAT_DELAY);
+        }
+
+        if (retry_count == GPIO_SYSFS_EXPORT_STAT_RETRIES)
+            return _gpio_error(gpio, GPIO_ERROR_OPEN, 0, "Opening GPIO: waiting for 'gpio%d/' timed out", line);
+    }
+
+    /* Open value */
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/value", line);
+    if ((fd = open(gpio_path, O_RDWR)) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO 'gpio%d/value'", line);
+
+    memset(gpio, 0, sizeof(gpio_t));
+    gpio->line_fd = fd;
+    gpio->line = line;
+    gpio->ops = &gpio_sysfs_ops;
+
+    /* If not preserving existing direction */
+    if (direction != GPIO_DIR_PRESERVE) {
+        int ret = gpio_sysfs_set_direction(gpio, direction);
+        if (ret < 0)
+            return ret;
+    }
+
+    return 0;
 }
 
-int gpio_errno(gpio_t *gpio) {
-    return gpio->error.c_errno;
+int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction) {
+    return GPIO_ERROR_UNSUPPORTED;
 }
 
-unsigned int gpio_pin(gpio_t *gpio) {
-    return gpio->pin;
-}
-
-int gpio_fd(gpio_t *gpio) {
-    return gpio->fd;
+int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction) {
+    return GPIO_ERROR_UNSUPPORTED;
 }

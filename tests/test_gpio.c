@@ -28,7 +28,7 @@ void test_arguments(void) {
     passert(gpio != NULL);
 
     /* Invalid direction */
-    passert(gpio_open(gpio, pin_input, 5) == GPIO_ERROR_ARG);
+    passert(gpio_open_sysfs(gpio, pin_input, 5) == GPIO_ERROR_ARG);
 
     /* Free GPIO */
     gpio_free(gpio);
@@ -36,7 +36,7 @@ void test_arguments(void) {
 
 void test_open_config_close(void) {
     gpio_t *gpio;
-    bool value, interrupts_supported;
+    bool value;
     gpio_direction_t direction;
     gpio_edge_t edge;
 
@@ -47,16 +47,24 @@ void test_open_config_close(void) {
     passert(gpio != NULL);
 
     /* Open non-existent GPIO -- export should fail with EINVAL */
-    passert(gpio_open(gpio, -1, GPIO_DIR_IN) == GPIO_ERROR_EXPORT);
+    passert(gpio_open_sysfs(gpio, -1, GPIO_DIR_IN) == GPIO_ERROR_OPEN);
     passert(gpio_errno(gpio) == EINVAL);
 
     /* Open legitimate GPIO */
-    passert(gpio_open(gpio, pin_output, GPIO_DIR_IN) == 0);
+    passert(gpio_open_sysfs(gpio, pin_output, GPIO_DIR_IN) == 0);
+
+    /* Check properties */
+    passert(gpio_line(gpio) == pin_output);
+    passert(gpio_fd(gpio) >= 0);
 
     /* Invalid direction */
     passert(gpio_set_direction(gpio, 5) == GPIO_ERROR_ARG);
     /* Invalid interrupt edge */
     passert(gpio_set_edge(gpio, 5) == GPIO_ERROR_ARG);
+    /* Unsupported property */
+    passert(gpio_chip_fd(gpio) == GPIO_ERROR_UNSUPPORTED);
+    /* Unsupported method */
+    passert(gpio_read_event(gpio, &edge, NULL) == GPIO_ERROR_UNSUPPORTED);
 
     /* Set direction out, check direction out, check value low */
     passert(gpio_set_direction(gpio, GPIO_DIR_OUT) == 0);
@@ -76,15 +84,12 @@ void test_open_config_close(void) {
     passert(direction == GPIO_DIR_OUT);
     passert(gpio_read(gpio, &value) == 0);
     passert(value == true);
+
     /* Set direction in, check direction in */
     passert(gpio_set_direction(gpio, GPIO_DIR_IN) == 0);
     passert(gpio_get_direction(gpio, &direction) == 0);
     passert(direction == GPIO_DIR_IN);
     passert(gpio_read(gpio, &value) == 0);
-
-    /* Check interrupt edge support */
-    passert(gpio_supports_interrupts(gpio, &interrupts_supported) == 0);
-    passert(interrupts_supported == true);
 
     /* Set edge none, check edge none */
     passert(gpio_set_edge(gpio, GPIO_EDGE_NONE) == 0);
@@ -111,11 +116,11 @@ void test_open_config_close(void) {
     passert(gpio_close(gpio) == 0);
 
     /* Open GPIO as out */
-    passert(gpio_open(gpio, pin_output, GPIO_DIR_OUT) == 0);
+    passert(gpio_open_sysfs(gpio, pin_output, GPIO_DIR_OUT) == 0);
     /* Close GPIO */
     passert(gpio_close(gpio) == 0);
     /* Open GPIO with preserved direction */
-    passert(gpio_open(gpio, pin_output, GPIO_DIR_PRESERVE) == 0);
+    passert(gpio_open_sysfs(gpio, pin_output, GPIO_DIR_PRESERVE) == 0);
     /* Check direction is still out */
     passert(gpio_get_direction(gpio, &direction) == 0);
     passert(direction == GPIO_DIR_OUT);
@@ -178,8 +183,8 @@ void test_loopback(void) {
     passert(gpio_out != NULL);
 
     /* Open in and out pins */
-    passert(gpio_open(gpio_in, pin_input, GPIO_DIR_IN) == 0);
-    passert(gpio_open(gpio_out, pin_output, GPIO_DIR_OUT) == 0);
+    passert(gpio_open_sysfs(gpio_in, pin_input, GPIO_DIR_IN) == 0);
+    passert(gpio_open_sysfs(gpio_out, pin_output, GPIO_DIR_OUT) == 0);
 
     /* Drive out low, check in low */
     passert(gpio_write(gpio_out, false) == 0);
@@ -225,6 +230,7 @@ bool getc_yes(void) {
 }
 
 void test_interactive(void) {
+    char str[256];
     gpio_t *gpio;
 
     ptest();
@@ -233,11 +239,17 @@ void test_interactive(void) {
     gpio = gpio_new();
     passert(gpio != NULL);
 
-    passert(gpio_open(gpio, pin_output, GPIO_DIR_OUT) == 0);
+    passert(gpio_open_sysfs(gpio, pin_output, GPIO_DIR_OUT) == 0);
 
     printf("Starting interactive test. Get out your multimeter, buddy!\n");
     printf("Press enter to continue...\n");
     getc(stdin);
+
+    /* Check tostring */
+    passert(gpio_tostring(gpio, str, sizeof(str)) > 0);
+    printf("GPIO description: %s\n", str);
+    printf("GPIO description looks OK? y/n\n");
+    passert(getc_yes());
 
     /* Drive GPIO out low */
     passert(gpio_write(gpio, false) == 0);
