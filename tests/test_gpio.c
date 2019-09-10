@@ -10,6 +10,8 @@
 #include <errno.h>
 
 #include <sys/wait.h>
+#include <pthread.h>
+#include <semaphore.h>
 #include <unistd.h>
 
 #include "../src/gpio.h"
@@ -125,8 +127,46 @@ void test_open_config_close(void) {
     gpio_free(gpio);
 }
 
+/* Threaded poll helper functions */
+
+typedef struct {
+    sem_t *sem;
+    gpio_t *gpio;
+    int timeout_ms;
+} gpio_poll_args_t;
+
+void *gpio_poll_thread(void *arg) {
+    gpio_poll_args_t *args = (gpio_poll_args_t *)arg;
+    gpio_t *gpio = args->gpio;
+    int timeout_ms = args->timeout_ms;
+
+    assert(sem_post(args->sem) == 0);
+
+    intptr_t ret = gpio_poll(gpio, timeout_ms);
+
+    return (void *)ret;
+}
+
+void gpio_poll_start(pthread_t *thread, gpio_t *gpio, int timeout_ms) {
+    sem_t sem;
+    gpio_poll_args_t args = {.sem = &sem, .gpio = gpio, .timeout_ms = timeout_ms};
+
+    assert(sem_init(&sem, 0, 0) == 0);
+    assert(pthread_create(thread, NULL, &gpio_poll_thread, &args) == 0);
+    assert(sem_wait(&sem) == 0);
+}
+
+int gpio_poll_join(pthread_t thread) {
+    void *ret;
+
+    assert(pthread_join(thread, &ret) == 0);
+
+    return (intptr_t)ret;
+}
+
 void test_loopback(void) {
     gpio_t *gpio_in, *gpio_out;
+    pthread_t poll_thread;
     bool value;
 
     ptest();
@@ -153,15 +193,17 @@ void test_loopback(void) {
 
     /* Check poll falling 1 -> 0 interrupt */
     passert(gpio_set_edge(gpio_in, GPIO_EDGE_FALLING) == 0);
+    gpio_poll_start(&poll_thread, gpio_in, 1000);
     passert(gpio_write(gpio_out, false) == 0);
-    passert(gpio_poll(gpio_in, 1000) == 1);
+    passert(gpio_poll_join(poll_thread) == 1);
     passert(gpio_read(gpio_in, &value) == 0);
     passert(value == false);
 
     /* Check poll rising 0 -> 1 interrupt */
     passert(gpio_set_edge(gpio_in, GPIO_EDGE_RISING) == 0);
+    gpio_poll_start(&poll_thread, gpio_in, 1000);
     passert(gpio_write(gpio_out, true) == 0);
-    passert(gpio_poll(gpio_in, 1000) == 1);
+    passert(gpio_poll_join(poll_thread) == 1);
     passert(gpio_read(gpio_in, &value) == 0);
     passert(value == true);
 
