@@ -138,14 +138,14 @@ The periphery I2C functions return 0 on success or one of the negative error cod
 
 The libc errno of the failure in an underlying libc library call can be obtained with the `i2c_errno()` helper function. A human readable error message can be obtained with the `i2c_errmsg()` helper function.
 
-| Error Code                | Description                           |
-|---------------------------|---------------------------------------|
-| `I2C_ERROR_ARG`           | Invalid arguments                     |
-| `I2C_ERROR_OPEN`          | Opening I2C device                    |
-| `I2C_ERROR_QUERY_SUPPORT` | Querying I2C support on I2C device    |
-| `I2C_ERROR_NOT_SUPPORTED` | I2C not supported on this device      |
-| `I2C_ERROR_TRANSFER`      | I2C transfer                          |
-| `I2C_ERROR_CLOSE`         | Closing I2C device                    |
+| Error Code                | Description                       |
+|---------------------------|-----------------------------------|
+| `I2C_ERROR_ARG`           | Invalid arguments                 |
+| `I2C_ERROR_OPEN`          | Opening I2C device                |
+| `I2C_ERROR_QUERY`         | Querying I2C device attribtues    |
+| `I2C_ERROR_NOT_SUPPORTED` | I2C not supported on this device  |
+| `I2C_ERROR_TRANSFER`      | I2C transfer                      |
+| `I2C_ERROR_CLOSE`         | Closing I2C device                |
 
 ### EXAMPLE
 

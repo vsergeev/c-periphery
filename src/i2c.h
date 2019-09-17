@@ -21,8 +21,8 @@ extern "C" {
 enum i2c_error_code {
     I2C_ERROR_ARG               = -1, /* Invalid arguments */
     I2C_ERROR_OPEN              = -2, /* Opening I2C device */
-    I2C_ERROR_QUERY_SUPPORT     = -3, /* Querying I2C support on I2C device */
-    I2C_ERROR_NOT_SUPPORTED     = -4, /* I2C not suppoted on this device */
+    I2C_ERROR_QUERY             = -3, /* Querying I2C device attributes */
+    I2C_ERROR_NOT_SUPPORTED     = -4, /* I2C not supported on this device */
     I2C_ERROR_TRANSFER          = -5, /* I2C transfer */
     I2C_ERROR_CLOSE             = -6, /* Closing I2C device */
 };
