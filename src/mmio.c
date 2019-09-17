@@ -73,7 +73,7 @@ int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
     if ((mmio->ptr = mmap(0, mmio->aligned_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mmio->aligned_base)) == MAP_FAILED) {
         int errsv = errno;
         close(fd);
-        return _mmio_error(mmio, MMIO_ERROR_MAP, errsv, "Mapping memory");
+        return _mmio_error(mmio, MMIO_ERROR_OPEN, errsv, "Mapping memory");
     }
 
     /* Close memory */
@@ -171,7 +171,7 @@ int mmio_close(mmio_t *mmio) {
 
     /* Unmap memory */
     if (munmap(mmio->ptr, mmio->aligned_size) < 0)
-        return _mmio_error(mmio, MMIO_ERROR_UNMAP, errno, "Unmapping memory");
+        return _mmio_error(mmio, MMIO_ERROR_CLOSE, errno, "Unmapping memory");
 
     mmio->ptr = 0;
 

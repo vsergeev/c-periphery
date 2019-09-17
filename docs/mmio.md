@@ -164,13 +164,11 @@ The periphery MMIO functions return 0 on success or one of the negative error co
 
 The libc errno of the failure in an underlying libc library call can be obtained with the `mmio_errno()` helper function. A human readable error message can be obtained with the `mmio_errmsg()` helper function.
 
-| Error Code            | Description                   |
-|-----------------------|-------------------------------|
-| `MMIO_ERROR_ARG`      | Invalid arguments             |
-| `MMIO_ERROR_OPEN`     | Opening /dev/mem              |
-| `MMIO_ERROR_MAP`      | Mapping memory                |
-| `MMIO_ERROR_CLOSE`    | Closing /dev/mem              |
-| `MMIO_ERROR_UNMAP`    | Unmapping memory              |
+| Error Code            | Description           |
+|-----------------------|-----------------------|
+| `MMIO_ERROR_ARG`      | Invalid arguments     |
+| `MMIO_ERROR_OPEN`     | Opening MMIO          |
+| `MMIO_ERROR_CLOSE`    | Closing MMIO          |
 
 ### EXAMPLE
 

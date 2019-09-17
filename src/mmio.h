@@ -17,10 +17,8 @@ extern "C" {
 
 enum mmio_error_code {
     MMIO_ERROR_ARG          = -1, /* Invalid arguments */
-    MMIO_ERROR_OPEN         = -2, /* Opening /dev/mem */
-    MMIO_ERROR_MAP          = -3, /* Mapping memory */
-    MMIO_ERROR_CLOSE        = -4, /* Closing /dev/mem */
-    MMIO_ERROR_UNMAP        = -5, /* Unmapping memory */
+    MMIO_ERROR_OPEN         = -2, /* Opening MMIO */
+    MMIO_ERROR_CLOSE        = -3, /* Closing MMIO */
 };
 
 typedef struct mmio_handle mmio_t;
