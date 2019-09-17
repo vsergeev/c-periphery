@@ -18,10 +18,10 @@ extern "C" {
 enum serial_error_code {
     SERIAL_ERROR_ARG            = -1, /* Invalid arguments */
     SERIAL_ERROR_OPEN           = -2, /* Opening serial port */
-    SERIAL_ERROR_QUERY          = -3, /* Getting serial port attributes */
+    SERIAL_ERROR_QUERY          = -3, /* Querying serial port attributes */
+    SERIAL_ERROR_CONFIGURE      = -4, /* Configuring serial port attributes */
     SERIAL_ERROR_IO             = -5, /* Reading/writing serial port */
-    SERIAL_ERROR_CONFIGURE      = -6, /* Setting serial port attributes */
-    SERIAL_ERROR_CLOSE          = -7, /* Closing serial port */
+    SERIAL_ERROR_CLOSE          = -6, /* Closing serial port */
 };
 
 typedef enum serial_parity {
