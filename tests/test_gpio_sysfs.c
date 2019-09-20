@@ -115,19 +115,6 @@ void test_open_config_close(void) {
     /* Close GPIO */
     passert(gpio_close(gpio) == 0);
 
-    /* Open GPIO as out */
-    passert(gpio_open_sysfs(gpio, pin_output, GPIO_DIR_OUT) == 0);
-    /* Close GPIO */
-    passert(gpio_close(gpio) == 0);
-    /* Open GPIO with preserved direction */
-    passert(gpio_open_sysfs(gpio, pin_output, GPIO_DIR_PRESERVE) == 0);
-    /* Check direction is still out */
-    passert(gpio_get_direction(gpio, &direction) == 0);
-    passert(direction == GPIO_DIR_OUT);
-
-    /* Close GPIO */
-    passert(gpio_close(gpio) == 0);
-
     /* Free GPIO */
     gpio_free(gpio);
 }

@@ -32,7 +32,6 @@ typedef enum gpio_direction {
     GPIO_DIR_OUT,       /* Output, initialized to low */
     GPIO_DIR_OUT_LOW,   /* Output, initialized to low */
     GPIO_DIR_OUT_HIGH,  /* Output, initialized to high */
-    GPIO_DIR_PRESERVE,  /* Preserve existing direction */
 } gpio_direction_t;
 
 typedef enum gpio_edge {

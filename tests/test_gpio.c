@@ -30,7 +30,6 @@ void test_arguments(void) {
 
     /* Invalid direction */
     passert(gpio_open(gpio, device, pin_input, 5) == GPIO_ERROR_ARG);
-    passert(gpio_open(gpio, device, pin_input, GPIO_DIR_PRESERVE) == GPIO_ERROR_ARG);
 
     /* Free GPIO */
     gpio_free(gpio);

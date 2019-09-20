@@ -507,10 +507,10 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     char gpio_path[P_PATH_MAX];
     struct stat stat_buf;
     char buf[16];
-    int fd;
+    int ret, fd;
 
-    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH && direction != GPIO_DIR_PRESERVE)
-        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high, preserve)");
+    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
 
     /* Check if GPIO directory exists */
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d", line);
@@ -553,12 +553,9 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     gpio->line = line;
     gpio->ops = &gpio_sysfs_ops;
 
-    /* If not preserving existing direction */
-    if (direction != GPIO_DIR_PRESERVE) {
-        int ret = gpio_sysfs_set_direction(gpio, direction);
-        if (ret < 0)
-            return ret;
-    }
+    ret = gpio_sysfs_set_direction(gpio, direction);
+    if (ret < 0)
+        return ret;
 
     return 0;
 }
