@@ -197,6 +197,9 @@ static const char *gpio_sysfs_edge_to_string[] = {
 };
 
 static int gpio_sysfs_close(gpio_t *gpio) {
+    char buf[16];
+    int fd;
+
     if (gpio->line_fd < 0)
         return 0;
 
@@ -205,6 +208,18 @@ static int gpio_sysfs_close(gpio_t *gpio) {
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO 'value'");
 
     gpio->line_fd = -1;
+
+    /* Unexport the GPIO */
+    snprintf(buf, sizeof(buf), "%d", gpio->line);
+    if ((fd = open("/sys/class/gpio/unexport", O_WRONLY)) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: opening 'unexport'");
+    if (write(fd, buf, strlen(buf)+1) < 0) {
+        int errsv = errno;
+        close(fd);
+        return _gpio_error(gpio, GPIO_ERROR_CLOSE, errsv, "Closing GPIO: writing 'unexport'");
+    }
+    if (close(fd) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: closing 'unexport'");
 
     return 0;
 }
