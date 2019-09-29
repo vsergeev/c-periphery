@@ -24,14 +24,14 @@ int main(void) {
     gpio_in = gpio_new();
     gpio_out = gpio_new();
 
-    /* Open GPIO 10 with input direction */
-    if (gpio_open(gpio_in, 10, GPIO_DIR_IN) < 0) {
+    /* Open GPIO /dev/gpiochip0 line 10 with input direction */
+    if (gpio_open(gpio_in, "/dev/gpiochip0", 10, GPIO_DIR_IN) < 0) {
         fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_in));
         exit(1);
     }
 
-    /* Open GPIO 12 with output direction */
-    if (gpio_open(gpio_out, 12, GPIO_DIR_OUT) < 0) {
+    /* Open GPIO /dev/gpiochip0 line 12 with output direction */
+    if (gpio_open(gpio_out, "/dev/gpiochip0", 12, GPIO_DIR_OUT) < 0) {
         fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_out));
         exit(1);
     }
