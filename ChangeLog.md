@@ -1,3 +1,17 @@
+* v2.0.0 - 09/30/2019
+    * Add support for character device GPIOs (`gpio-cdev`) to the GPIO module.
+        * Remove support for preserve direction in `gpio_open()`.
+        * Remove problematic dummy read with sysfs GPIOs from `gpio_poll()`.
+        * Unexport sysfs GPIOs in `gpio_close()`.
+    * Migrate to opaque handles with new/free functions in all modules.
+    * Simplify error codes for MMIO, I2C, and Serial modules.
+    * Fix typos in GPIO module documentation.
+    * Update tests with running hints for Raspberry Pi 3.
+    * Improve cross-compilation support in Makefile.
+    * Contributors
+        * longsky, @wangqiang1588 - d880ef7
+        * jhlim, @johlim - 742d983
+
 * v1.1.3 - 04/28/2018
     * Fix data's most significant bit getting stripped when opening a serial
       port with parity enabled in `serial_open_advanced()`.
