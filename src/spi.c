@@ -106,8 +106,8 @@ int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len) {
 
     /* Prepare SPI transfer structure */
     memset(&spi_xfer, 0, sizeof(struct spi_ioc_transfer));
-    spi_xfer.tx_buf = (__u64)txbuf;
-    spi_xfer.rx_buf = (__u64)rxbuf;
+    spi_xfer.tx_buf = (uintptr_t)txbuf;
+    spi_xfer.rx_buf = (uintptr_t)rxbuf;
     spi_xfer.len = len;
     spi_xfer.delay_usecs = 0;
     spi_xfer.speed_hz = 0;
