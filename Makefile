@@ -13,7 +13,7 @@ OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 COMMIT_ID := $(shell git describe --abbrev --always --tags --dirty 2>/dev/null || echo "")
 
 CFLAGS += -std=gnu99 -pedantic
-CFLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-pointer-to-int-cast $(DEBUG) -fPIC
+CFLAGS += -Wall -Wextra -Wno-unused-parameter $(DEBUG) -fPIC
 CFLAGS += -DPERIPHERY_VERSION_COMMIT=\"$(COMMIT_ID)\"
 LDFLAGS +=
 
