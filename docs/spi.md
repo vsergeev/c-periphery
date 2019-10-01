@@ -185,14 +185,14 @@ The periphery SPI functions return 0 on success or one of the negative error cod
 
 The libc errno of the failure in an underlying libc library call can be obtained with the `spi_errno()` helper function. A human readable error message can be obtained with the `spi_errmsg()` helper function.
 
-| Error Code            | Description                   |
-|-----------------------|-------------------------------|
-| `SPI_ERROR_ARG`       | Invalid arguments             |
-| `SPI_ERROR_OPEN`      | Opening SPI device            |
-| `SPI_ERROR_QUERY`     | Querying SPI device settings  |
-| `SPI_ERROR_CONFIGURE` | Configuring SPI device        |
-| `SPI_ERROR_TRANSFER`  | SPI transfer                  |
-| `SPI_ERROR_CLOSE`     | Closing SPI device            |
+| Error Code            | Description                       |
+|-----------------------|-----------------------------------|
+| `SPI_ERROR_ARG`       | Invalid arguments                 |
+| `SPI_ERROR_OPEN`      | Opening SPI device                |
+| `SPI_ERROR_QUERY`     | Querying SPI device attributes    |
+| `SPI_ERROR_CONFIGURE` | Configuring SPI device attributes |
+| `SPI_ERROR_TRANSFER`  | SPI transfer                      |
+| `SPI_ERROR_CLOSE`     | Closing SPI device                |
 
 ### EXAMPLE
 

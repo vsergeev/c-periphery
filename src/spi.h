@@ -17,8 +17,8 @@ extern "C" {
 enum spi_error_code {
     SPI_ERROR_ARG           = -1, /* Invalid arguments */
     SPI_ERROR_OPEN          = -2, /* Opening SPI device */
-    SPI_ERROR_QUERY         = -3, /* Querying SPI device settings */
-    SPI_ERROR_CONFIGURE     = -4, /* Configuring SPI device */
+    SPI_ERROR_QUERY         = -3, /* Querying SPI device attributes */
+    SPI_ERROR_CONFIGURE     = -4, /* Configuring SPI device attributes */
     SPI_ERROR_TRANSFER      = -5, /* SPI transfer */
     SPI_ERROR_CLOSE         = -6, /* Closing SPI device */
 };
