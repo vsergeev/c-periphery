@@ -52,7 +52,13 @@ static int _serial_error(serial_t *serial, int code, int c_errno, const char *fm
 }
 
 serial_t *serial_new(void) {
-    return malloc(sizeof(serial_t));
+    serial_t *serial = calloc(1, sizeof(serial_t));
+    if (serial == NULL)
+        return NULL;
+
+    serial->fd = -1;
+
+    return serial;
 }
 
 void serial_free(serial_t *serial) {
