@@ -50,7 +50,13 @@ static int _spi_error(spi_t *spi, int code, int c_errno, const char *fmt, ...) {
 }
 
 spi_t *spi_new(void) {
-    return malloc(sizeof(spi_t));
+    spi_t *spi = calloc(1, sizeof(spi_t));
+    if (spi == NULL)
+        return NULL;
+
+    spi->fd = -1;
+
+    return spi;
 }
 
 void spi_free(spi_t *spi) {
