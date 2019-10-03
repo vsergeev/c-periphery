@@ -49,7 +49,7 @@ static int _mmio_error(mmio_t *mmio, int code, int c_errno, const char *fmt, ...
 }
 
 mmio_t *mmio_new(void) {
-    return malloc(sizeof(mmio_t));
+    return calloc(1, sizeof(mmio_t));
 }
 
 void mmio_free(mmio_t *mmio) {
