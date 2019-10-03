@@ -51,7 +51,13 @@ static int _i2c_error(i2c_t *i2c, int code, int c_errno, const char *fmt, ...) {
 }
 
 i2c_t *i2c_new(void) {
-    return malloc(sizeof(i2c_t));
+    i2c_t *i2c = calloc(1, sizeof(i2c_t));
+    if (i2c == NULL)
+        return NULL;
+
+    i2c->fd = -1;
+
+    return i2c;
 }
 
 void i2c_free(i2c_t *i2c) {
