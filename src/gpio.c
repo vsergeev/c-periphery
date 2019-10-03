@@ -64,12 +64,24 @@ struct gpio_handle {
     } error;
 };
 
+static const struct gpio_ops gpio_sysfs_ops;
+static const struct gpio_ops gpio_cdev_ops;
+
 /*********************************************************************************/
 /* Public interface, except for open()s */
 /*********************************************************************************/
 
 gpio_t *gpio_new(void) {
-    return malloc(sizeof(gpio_t));
+    gpio_t *gpio = calloc(1, sizeof(gpio_t));
+    if (gpio == NULL)
+        return NULL;
+
+    gpio->ops = &gpio_cdev_ops;
+    gpio->line = -1;
+    gpio->line_fd = -1;
+    gpio->chip_fd = -1;
+
+    return gpio;
 }
 
 void gpio_free(gpio_t *gpio) {
