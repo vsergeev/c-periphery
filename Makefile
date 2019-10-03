@@ -17,6 +17,11 @@ CFLAGS += -Wall -Wextra -Wno-unused-parameter $(DEBUG) -fPIC
 CFLAGS += -DPERIPHERY_VERSION_COMMIT=\"$(COMMIT_ID)\"
 LDFLAGS +=
 
+ifdef CROSS_COMPILE
+CC = $(CROSS_COMPILE)gcc
+AR = $(CROSS_COMPILE)ar
+endif
+
 ###########################################################################
 
 .PHONY: all
@@ -32,7 +37,7 @@ clean:
 ###########################################################################
 
 tests/%: tests/%.c $(LIB)
-	$(CROSS)$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIB) -o $@ -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIB) -o $@ -lpthread
 
 ###########################################################################
 
@@ -42,8 +47,8 @@ $(OBJDIR):
 	mkdir $(OBJDIR)
 
 $(LIB): $(OBJECTS)
-	$(CROSS)$(AR) rcs $(LIB) $(OBJECTS)
+	$(AR) rcs $(LIB) $(OBJECTS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CROSS)$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 

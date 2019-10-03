@@ -297,11 +297,11 @@ $
 
 ### Cross-compilation
 
-Set the `CROSS` and `CC` environment variables with the cross-compiler prefix and compiler, respectively, when calling make:
+Set the `CROSS_COMPILE` environment variable with the cross-compiler prefix when calling make:
 
 ``` console
-$ CROSS=arm-linux- CC=gcc make clean all tests
-rm -rf periphery.a obj tests/test_serial tests/test_i2c tests/test_gpio_sysfs tests/test_mmio tests/test_spi tests/test_gpio
+$ CROSS_COMPILE=arm-linux- make clean all tests
+rm -rf periphery.a obj tests/test_serial tests/test_i2c tests/test_mmio tests/test_spi tests/test_gpio
 mkdir obj
 arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/gpio.c -o obj/gpio.o
 arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/spi.c -o obj/spi.o
