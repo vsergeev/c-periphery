@@ -152,7 +152,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ``` c
 int gpio_close(gpio_t *gpio);
 ```
-Close the sysfs GPIO.
+Close the GPIO.
 
 `gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
 
