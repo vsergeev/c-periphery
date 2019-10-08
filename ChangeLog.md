@@ -1,3 +1,13 @@
+* v2.0.1 - 10/08/2019
+    * Initialize handle state in new functions of all modules.
+    * Fix performance of blocking read in `serial_read()`.
+    * Return error on unexpected empty read in `serial_read()`, which may be
+      caused by a serial port disconnect.
+    * Improve formatting of `spi_tostring()`.
+    * Fix typo in GPIO module documentation.
+    * Fix cross-compilation support in Makefile to allow override of CC
+      variable.
+
 * v2.0.0 - 09/30/2019
     * Add support for character device GPIOs (`gpio-cdev`) to the GPIO module.
         * Remove support for preserve direction in `gpio_open()`.
