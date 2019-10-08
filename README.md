@@ -271,12 +271,12 @@ int main(void) {
 ``` console
 $ make
 mkdir obj
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/gpio.c -o obj/gpio.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/spi.c -o obj/spi.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/i2c.c -o obj/i2c.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/mmio.c -o obj/mmio.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/serial.c -o obj/serial.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/version.c -o obj/version.o
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/gpio.c -o obj/gpio.o
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/spi.c -o obj/spi.o
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/i2c.c -o obj/i2c.o
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/mmio.c -o obj/mmio.o
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/serial.c -o obj/serial.o
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/version.c -o obj/version.o
 ar rcs periphery.a obj/gpio.o obj/spi.o obj/i2c.o obj/mmio.o obj/serial.o obj/version.o
 $
 ```
@@ -285,13 +285,13 @@ $
 
 ``` console
 $ make tests
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_serial.c periphery.a -o tests/test_serial -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_i2c.c periphery.a -o tests/test_i2c -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_gpio_sysfs.c periphery.a -o tests/test_gpio_sysfs -lp
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_serial.c periphery.a -o tests/test_serial -lpthread
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_i2c.c periphery.a -o tests/test_i2c -lpthread
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_gpio_sysfs.c periphery.a -o tests/test_gpio_sysfs -lp
 thread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_mmio.c periphery.a -o tests/test_mmio -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_spi.c periphery.a -o tests/test_spi -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_gpio.c periphery.a -o tests/test_gpio -lpthread
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_mmio.c periphery.a -o tests/test_mmio -lpthread
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_spi.c periphery.a -o tests/test_spi -lpthread
+cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_gpio.c periphery.a -o tests/test_gpio -lpthread
 $
 ```
 
@@ -303,24 +303,24 @@ Set the `CROSS_COMPILE` environment variable with the cross-compiler prefix when
 $ CROSS_COMPILE=arm-linux- make clean all tests
 rm -rf periphery.a obj tests/test_serial tests/test_i2c tests/test_mmio tests/test_spi tests/test_gpio
 mkdir obj
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/gpio.c -o obj/gpio.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/spi.c -o obj/spi.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/i2c.c -o obj/i2c.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/mmio.c -o obj/mmio.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/serial.c -o obj/serial.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  -c src/version.c -o obj/version.o
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/gpio.c -o obj/gpio.o
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/spi.c -o obj/spi.o
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/i2c.c -o obj/i2c.o
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/mmio.c -o obj/mmio.o
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/serial.c -o obj/serial.o
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  -c src/version.c -o obj/version.o
 arm-linux-ar rcs periphery.a obj/gpio.o obj/spi.o obj/i2c.o obj/mmio.o obj/serial.o obj/version.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_serial.c periphery.a -o tests/te
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_serial.c periphery.a -o tests/te
 st_serial -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_i2c.c periphery.a -o tests/test_
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_i2c.c periphery.a -o tests/test_
 i2c -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_gpio_sysfs.c periphery.a -o test
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_gpio_sysfs.c periphery.a -o test
 s/test_gpio_sysfs -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_mmio.c periphery.a -o tests/test
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_mmio.c periphery.a -o tests/test
 _mmio -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_spi.c periphery.a -o tests/test_
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_spi.c periphery.a -o tests/test_
 spi -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.0\"  tests/test_gpio.c periphery.a -o tests/test
+arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.0.1\"  tests/test_gpio.c periphery.a -o tests/test
 _gpio -lpthread
 $
 ```
