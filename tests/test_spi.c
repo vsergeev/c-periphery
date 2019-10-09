@@ -123,6 +123,7 @@ bool getc_yes(void) {
 }
 
 void test_interactive(void) {
+    char str[256];
     spi_t *spi;
     uint8_t buf[] = { 0x55, 0xaa, 0x0f, 0xf0 };
 
@@ -137,6 +138,12 @@ void test_interactive(void) {
     printf("Starting interactive test. Get out your logic analyzer, buddy!\n");
     printf("Press enter to continue...\n");
     getc(stdin);
+
+    /* Check tostring */
+    passert(spi_tostring(spi, str, sizeof(str)) > 0);
+    printf("SPI description: %s\n", str);
+    printf("SPI description looks OK? y/n\n");
+    passert(getc_yes());
 
     /* Mode 0 transfer */
     printf("Press enter to start transfer...");
