@@ -173,6 +173,7 @@ bool getc_yes(void) {
 }
 
 void test_interactive(void) {
+    char str[256];
     serial_t *serial;
     uint8_t buf[] = "Hello World";
 
@@ -186,6 +187,12 @@ void test_interactive(void) {
     printf("Starting interactive test. Get out your logic analyzer, buddy!\n");
     printf("Press enter to continue...\n");
     getc(stdin);
+
+    /* Check tostring */
+    passert(serial_tostring(serial, str, sizeof(str)) > 0);
+    printf("Serial description: %s\n", str);
+    printf("Serial description looks OK? y/n\n");
+    passert(getc_yes());
 
     printf("Press enter to start transfer...");
     getc(stdin);
