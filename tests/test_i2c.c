@@ -58,6 +58,7 @@ bool getc_yes(void) {
 }
 
 void test_interactive(void) {
+    char str[256];
     i2c_t *i2c;
     uint8_t msg1[] = { 0xaa, 0xbb, 0xcc, 0xdd };
     struct i2c_msg msgs[1];
@@ -73,6 +74,12 @@ void test_interactive(void) {
     printf("Starting interactive test. Get out your logic analyzer, buddy!\n");
     printf("Press enter to continue...\n");
     getc(stdin);
+
+    /* Check tostring */
+    passert(i2c_tostring(i2c, str, sizeof(str)) > 0);
+    printf("I2C description: %s\n", str);
+    printf("I2C description looks OK? y/n\n");
+    passert(getc_yes());
 
     /* There isn't much we can do without assuming a device on the other end,
      * because I2C needs an acknowledgement bit on each transferred byte.
