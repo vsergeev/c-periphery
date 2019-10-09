@@ -250,17 +250,15 @@ int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
     bytes_read = 0;
 
     do {
-        if (timeout_ms >= 0) {
-            FD_ZERO(&rfds);
-            FD_SET(serial->fd, &rfds);
+        FD_ZERO(&rfds);
+        FD_SET(serial->fd, &rfds);
 
-            if ((ret = select(serial->fd+1, &rfds, NULL, NULL, &tv_timeout)) < 0)
-                return _serial_error(serial, SERIAL_ERROR_IO, errno, "select() on serial port");
+        if ((ret = select(serial->fd+1, &rfds, NULL, NULL, (timeout_ms < 0) ? NULL : &tv_timeout)) < 0)
+            return _serial_error(serial, SERIAL_ERROR_IO, errno, "select() on serial port");
 
-            /* Timeout / nothing more to read */
-            if (ret == 0)
-                break;
-        }
+        /* Timeout */
+        if (ret == 0)
+            break;
 
         if ((ret = read(serial->fd, buf + bytes_read, bytes_left)) < 0)
             return _serial_error(serial, SERIAL_ERROR_IO, errno, "Reading serial port");
