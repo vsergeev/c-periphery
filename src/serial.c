@@ -263,6 +263,10 @@ int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
         if ((ret = read(serial->fd, buf + bytes_read, bytes_left)) < 0)
             return _serial_error(serial, SERIAL_ERROR_IO, errno, "Reading serial port");
 
+        /* Empty read */
+        if (ret == 0 && len != 0)
+            return _serial_error(serial, SERIAL_ERROR_IO, 0, "Reading serial port: unexpected empty read");
+
         bytes_read += ret;
         bytes_left -= ret;
     } while (bytes_left > 0);
