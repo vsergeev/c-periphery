@@ -1,8 +1,8 @@
 # c-periphery [![Build Status](https://travis-ci.org/vsergeev/c-periphery.svg?branch=master)](https://travis-ci.org/vsergeev/c-periphery) [![GitHub release](https://img.shields.io/github/release/vsergeev/c-periphery.svg?maxAge=7200)](https://github.com/vsergeev/c-periphery) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vsergeev/c-periphery/blob/master/LICENSE)
 
-## C Library for Linux Peripheral I/O (GPIO, SPI, I2C, MMIO, Serial)
+## C Library for Linux Peripheral I/O (GPIO, LED, SPI, I2C, MMIO, Serial)
 
-c-periphery is a small C library for GPIO, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. c-periphery simplifies and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including Raspberry Pi, BeagleBone, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
+c-periphery is a small C library for GPIO, LED, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. c-periphery simplifies and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including Raspberry Pi, BeagleBone, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
 
 Using Python or Lua? Check out the [python-periphery](https://github.com/vsergeev/python-periphery) and [lua-periphery](https://github.com/vsergeev/lua-periphery) projects.
 
@@ -59,6 +59,55 @@ int main(void) {
 ```
 
 [Go to GPIO documentation.](docs/gpio.md)
+
+### LED
+
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#include "led.h"
+
+int main(void) {
+    led_t *led;
+    unsigned int max_brightness;
+
+    led = led_new();
+
+    /* Open LED led0 */
+    if (led_open(led, "led0") < 0) {
+        fprintf(stderr, "led_open(): %s\n", led_errmsg(led));
+        exit(1);
+    }
+
+    /* Turn on LED (set max brightness) */
+    if (led_write(led, true) < 0) {
+        fprintf(stderr, "led_write(): %s\n", led_errmsg(led));
+        exit(1);
+    }
+
+    /* Get max brightness */
+    if (led_get_max_brightness(led, &max_brightness) < 0) {
+        fprintf(stderr, "led_get_max_brightness(): %s\n", led_errmsg(led));
+        exit(1);
+    }
+
+    /* Set half brightness */
+    if (led_set_brightness(led, max_brightness / 2) < 0) {
+        fprintf(stderr, "led_set_brightness(): %s\n", led_errmsg(led));
+        exit(1);
+    }
+
+    led_close(led);
+
+    led_free(led);
+
+    return 0;
+}
+```
+
+[Go to LED documentation.](docs/led.md)
 
 ### SPI
 
@@ -327,7 +376,7 @@ $
 
 ## Building c-periphery into another project
 
-Include the header files in `src/` (e.g. `gpio.h`, `spi.h`, `i2c.h`, `mmio.h`, `serial.h`) and link in the `periphery.a` static library.
+Include the header files in `src/` (e.g. `gpio.h`, `led.h`, `spi.h`, `i2c.h`, `mmio.h`, `serial.h`) and link in the `periphery.a` static library.
 
 ``` console
 $ gcc -I/path/to/periphery/src myprog.c /path/to/periphery/periphery.a -o myprog
