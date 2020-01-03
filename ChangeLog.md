@@ -1,3 +1,8 @@
+* v2.1.0 - 01/07/2020
+    * Add LED module.
+    * Add PWM module.
+    * Clean up internal string handling in SPI and GPIO modules.
+
 * v2.0.1 - 10/08/2019
     * Initialize handle state in new functions of all modules.
     * Fix performance of blocking read in `serial_read()`.
