@@ -118,7 +118,7 @@ int spi_get_bit_order(spi_t *spi, spi_bit_order_t *bit_order);
 int spi_get_bits_per_word(spi_t *spi, uint8_t *bits_per_word);
 int spi_get_extra_flags(spi_t *spi, uint8_t *extra_flags);
 ```
-Query the mode, max speed, bit order, bits per word, or extra flags, respectively, of the underlying `spidev` device.
+Get the mode, max speed, bit order, bits per word, or extra flags, respectively, of the underlying `spidev` device.
 
 `spi` should be a valid pointer to a SPI handle opened with `spi_open()` or `spi_open_advanced()`.
 
