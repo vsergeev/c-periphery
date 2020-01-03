@@ -171,7 +171,7 @@ Free a GPIO handle.
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
 ```
-Query the configured direction or interrupt edge, respectively, of the GPIO.
+Get the configured direction or interrupt edge, respectively, of the GPIO.
 
 `gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
 
