@@ -1,8 +1,8 @@
 # c-periphery [![Build Status](https://travis-ci.org/vsergeev/c-periphery.svg?branch=master)](https://travis-ci.org/vsergeev/c-periphery) [![GitHub release](https://img.shields.io/github/release/vsergeev/c-periphery.svg?maxAge=7200)](https://github.com/vsergeev/c-periphery) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vsergeev/c-periphery/blob/master/LICENSE)
 
-## C Library for Linux Peripheral I/O (GPIO, LED, SPI, I2C, MMIO, Serial)
+## C Library for Linux Peripheral I/O (GPIO, LED, PWM, SPI, I2C, MMIO, Serial)
 
-c-periphery is a small C library for GPIO, LED, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. c-periphery simplifies and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including Raspberry Pi, BeagleBone, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
+c-periphery is a small C library for GPIO, LED, PWM, SPI, I2C, MMIO, and Serial peripheral I/O interface access in userspace Linux. c-periphery simplifies and consolidate the native Linux APIs to these interfaces. c-periphery is useful in embedded Linux environments (including Raspberry Pi, BeagleBone, etc. platforms) for interfacing with external peripherals. c-periphery is re-entrant, has no dependencies outside the standard C library and Linux, compiles into a static library for easy integration with other projects, and is MIT licensed.
 
 Using Python or Lua? Check out the [python-periphery](https://github.com/vsergeev/python-periphery) and [lua-periphery](https://github.com/vsergeev/lua-periphery) projects.
 
@@ -108,6 +108,59 @@ int main(void) {
 ```
 
 [Go to LED documentation.](docs/led.md)
+
+### PWM
+
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "pwm.h"
+
+int main(void) {
+    pwm_t *pwm;
+
+    pwm = pwm_new();
+
+    /* Open PWM chip 0, channel 10 */
+    if (pwm_open(pwm, 0, 10) < 0) {
+        fprintf(stderr, "pwm_open(): %s\n", pwm_errmsg(pwm));
+        exit(1);
+    }
+
+    /* Set frequency to 1 kHz */
+    if (pwm_set_frequency(pwm, 1e3) < 0) {
+        fprintf(stderr, "pwm_set_frequency(): %s\n", pwm_errmsg(pwm));
+        exit(1);
+    }
+
+    /* Set duty cycle to 75% */
+    if (pwm_set_duty_cycle(pwm, 0.75) < 0) {
+        fprintf(stderr, "pwm_set_duty_cycle(): %s\n", pwm_errmsg(pwm));
+        exit(1);
+    }
+
+    /* Enable PWM */
+    if (pwm_enable(pwm) < 0) {
+        fprintf(stderr, "pwm_enable(): %s\n", pwm_errmsg(pwm));
+        exit(1);
+    }
+
+    /* Change duty cycle to 50% */
+    if (pwm_set_duty_cycle(pwm, 0.50) < 0) {
+        fprintf(stderr, "pwm_set_duty_cycle(): %s\n", pwm_errmsg(pwm));
+        exit(1);
+    }
+
+    pwm_close(pwm);
+
+    pwm_free(pwm);
+
+    return 0;
+}
+```
+
+[Go to PWM documentation.](docs/pwm.md)
 
 ### SPI
 
@@ -376,7 +429,7 @@ $
 
 ## Building c-periphery into another project
 
-Include the header files in `src/` (e.g. `gpio.h`, `led.h`, `spi.h`, `i2c.h`, `mmio.h`, `serial.h`) and link in the `periphery.a` static library.
+Include the header files in `src/` (e.g. `gpio.h`, `led.h`, `pwm.h`, `spi.h`, `i2c.h`, `mmio.h`, `serial.h`) and link in the `periphery.a` static library.
 
 ``` console
 $ gcc -I/path/to/periphery/src myprog.c /path/to/periphery/periphery.a -o myprog
