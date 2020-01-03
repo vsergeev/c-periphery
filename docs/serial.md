@@ -127,7 +127,7 @@ Returns 0 on success, or a negative [Serial error code](#return-value) on failur
 ``` c
 int serial_input_waiting(serial_t *serial, unsigned int *count);
 ```
-Query the number of bytes waiting to be read from the serial port.
+Get the number of bytes waiting to be read from the serial port.
 
 `serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
 
@@ -138,7 +138,7 @@ Returns 0 on success, or a negative [Serial error code](#return-value) on failur
 ``` c
 int serial_output_waiting(serial_t *serial, unsigned int *count);
 ```
-Query the number of bytes waiting to be written to the serial port.
+Get the number of bytes waiting to be written to the serial port.
 
 `serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
 
@@ -183,7 +183,7 @@ int serial_get_stopbits(serial_t *serial, unsigned int *stopbits);
 int serial_get_xonxoff(serial_t *serial, bool *xonxoff);
 int serial_get_rtscts(serial_t *serial, bool *rtscts);
 ```
-Query the baudrate, data bits, parity, stop bits, software flow control (xonxoff), or hardware flow control (rtscts), respectively, of the underlying `tty` device.
+Get the baudrate, data bits, parity, stop bits, software flow control (xonxoff), or hardware flow control (rtscts), respectively, of the underlying `tty` device.
 
 `serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
 
