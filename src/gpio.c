@@ -194,20 +194,6 @@ static int _gpio_error(gpio_t *gpio, int code, int c_errno, const char *fmt, ...
 /* Number of retries to check for successful GPIO exports */
 #define GPIO_SYSFS_EXPORT_STAT_RETRIES    10
 
-static const char *gpio_sysfs_direction_to_string[] = {
-    [GPIO_DIR_IN]         = "in",
-    [GPIO_DIR_OUT]        = "out",
-    [GPIO_DIR_OUT_LOW]    = "low",
-    [GPIO_DIR_OUT_HIGH]   = "high",
-};
-
-static const char *gpio_sysfs_edge_to_string[] = {
-    [GPIO_EDGE_NONE]      = "none",
-    [GPIO_EDGE_RISING]    = "rising",
-    [GPIO_EDGE_FALLING]   = "falling",
-    [GPIO_EDGE_BOTH]      = "both",
-};
-
 static int gpio_sysfs_close(gpio_t *gpio) {
     char buf[16];
     int len, fd;
@@ -300,20 +286,32 @@ static int gpio_sysfs_poll(gpio_t *gpio, int timeout_ms) {
 
 static int gpio_sysfs_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     char gpio_path[P_PATH_MAX];
+    const char *buf;
     int fd;
 
-    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
+    if (direction == GPIO_DIR_IN)
+        buf = "in\n";
+    else if (direction == GPIO_DIR_OUT)
+        buf = "out\n";
+    else if (direction == GPIO_DIR_OUT_LOW)
+        buf = "low\n";
+    else if (direction == GPIO_DIR_OUT_HIGH)
+        buf = "high\n";
+    else
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
 
     /* Write direction */
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/direction", gpio->line);
+
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Opening GPIO 'direction'");
-    if (write(fd, gpio_sysfs_direction_to_string[direction], strlen(gpio_sysfs_direction_to_string[direction])+1) < 0) {
+
+    if (write(fd, buf, strlen(buf)) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errsv, "Writing GPIO 'direction'");
     }
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Closing GPIO 'direction'");
 
@@ -351,20 +349,32 @@ static int gpio_sysfs_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
 
 static int gpio_sysfs_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     char gpio_path[P_PATH_MAX];
+    const char *buf;
     int fd;
 
-    if (edge != GPIO_EDGE_NONE && edge != GPIO_EDGE_RISING && edge != GPIO_EDGE_FALLING && edge != GPIO_EDGE_BOTH)
+    if (edge == GPIO_EDGE_NONE)
+        buf = "none\n";
+    else if (edge == GPIO_EDGE_RISING)
+        buf = "rising\n";
+    else if (edge == GPIO_EDGE_FALLING)
+        buf = "falling\n";
+    else if (edge == GPIO_EDGE_BOTH)
+        buf = "both\n";
+    else
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO interrupt edge (can be none, rising, falling, both)");
 
     /* Write edge */
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/edge", gpio->line);
+
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Opening GPIO 'edge'");
-    if (write(fd, gpio_sysfs_edge_to_string[edge], strlen(gpio_sysfs_edge_to_string[edge])+1) < 0) {
+
+    if (write(fd, buf, strlen(buf)) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errsv, "Writing GPIO 'edge'");
     }
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Closing GPIO 'edge'");
 
