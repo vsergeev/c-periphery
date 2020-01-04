@@ -222,7 +222,7 @@ static int gpio_sysfs_close(gpio_t *gpio) {
     gpio->line_fd = -1;
 
     /* Unexport the GPIO */
-    snprintf(buf, sizeof(buf), "%d", gpio->line);
+    snprintf(buf, sizeof(buf), "%u", gpio->line);
     if ((fd = open("/sys/class/gpio/unexport", O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: opening 'unexport'");
     if (write(fd, buf, strlen(buf)+1) < 0) {
@@ -306,7 +306,7 @@ static int gpio_sysfs_set_direction(gpio_t *gpio, gpio_direction_t direction) {
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
 
     /* Write direction */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", gpio->line);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/direction", gpio->line);
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Opening GPIO 'direction'");
     if (write(fd, gpio_sysfs_direction_to_string[direction], strlen(gpio_sysfs_direction_to_string[direction])+1) < 0) {
@@ -326,7 +326,7 @@ static int gpio_sysfs_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
     int fd, ret;
 
     /* Read direction */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/direction", gpio->line);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/direction", gpio->line);
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'direction'");
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
@@ -357,7 +357,7 @@ static int gpio_sysfs_set_edge(gpio_t *gpio, gpio_edge_t edge) {
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO interrupt edge (can be none, rising, falling, both)");
 
     /* Write edge */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->line);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/edge", gpio->line);
     if ((fd = open(gpio_path, O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Opening GPIO 'edge'");
     if (write(fd, gpio_sysfs_edge_to_string[edge], strlen(gpio_sysfs_edge_to_string[edge])+1) < 0) {
@@ -377,7 +377,7 @@ static int gpio_sysfs_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     int fd, ret;
 
     /* Read edge */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/edge", gpio->line);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/edge", gpio->line);
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'edge'");
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
@@ -427,7 +427,7 @@ static int gpio_sysfs_chip_name(gpio_t *gpio, char *str, size_t len) {
     char gpiochip_path[P_PATH_MAX];
 
     /* Form path to device */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/device", gpio->line);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/device", gpio->line);
 
     /* Resolve symlink to gpiochip */
     if ((ret = readlink(gpio_path, gpiochip_path, sizeof(gpiochip_path))) < 0)
@@ -507,7 +507,7 @@ static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
     else
         chip_label_str = chip_label;
 
-    return snprintf(str, len, "GPIO %d (fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=sysfs)",
+    return snprintf(str, len, "GPIO %u (fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=sysfs)",
                     gpio->line, gpio->line_fd, direction_str, edge_str, chip_name_str, chip_label_str);
 }
 
@@ -540,10 +540,10 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
 
     /* Check if GPIO directory exists */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d", line);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u", line);
     if (stat(gpio_path, &stat_buf) < 0) {
         /* Write line number to export file */
-        snprintf(buf, sizeof(buf), "%d", line);
+        snprintf(buf, sizeof(buf), "%u", line);
         if ((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: opening 'export'");
         if (write(fd, buf, strlen(buf)+1) < 0) {
@@ -561,19 +561,19 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
             if (ret == 0)
                 break;
             else if (ret < 0 && errno != ENOENT)
-                return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: stat 'gpio%d/' after export", line);
+                return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: stat 'gpio%u/' after export", line);
 
             usleep(GPIO_SYSFS_EXPORT_STAT_DELAY);
         }
 
         if (retry_count == GPIO_SYSFS_EXPORT_STAT_RETRIES)
-            return _gpio_error(gpio, GPIO_ERROR_OPEN, 0, "Opening GPIO: waiting for 'gpio%d/' timed out", line);
+            return _gpio_error(gpio, GPIO_ERROR_OPEN, 0, "Opening GPIO: waiting for 'gpio%u/' timed out", line);
     }
 
     /* Open value */
-    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%d/value", line);
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/value", line);
     if ((fd = open(gpio_path, O_RDWR)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO 'gpio%d/value'", line);
+        return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO 'gpio%u/value'", line);
 
     memset(gpio, 0, sizeof(gpio_t));
     gpio->line_fd = fd;
@@ -849,7 +849,7 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     else
         chip_label_str = chip_label;
 
-    return snprintf(str, len, "GPIO %d (name=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
+    return snprintf(str, len, "GPIO %u (name=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
                     gpio->line, line_name_str, gpio->line_fd, gpio->chip_fd, direction_str, edge_str, chip_name_str, chip_label_str);
 }
 
