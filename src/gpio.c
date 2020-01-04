@@ -210,7 +210,7 @@ static const char *gpio_sysfs_edge_to_string[] = {
 
 static int gpio_sysfs_close(gpio_t *gpio) {
     char buf[16];
-    int fd;
+    int len, fd;
 
     if (gpio->line_fd < 0)
         return 0;
@@ -222,10 +222,10 @@ static int gpio_sysfs_close(gpio_t *gpio) {
     gpio->line_fd = -1;
 
     /* Unexport the GPIO */
-    snprintf(buf, sizeof(buf), "%u", gpio->line);
+    len = snprintf(buf, sizeof(buf), "%u\n", gpio->line);
     if ((fd = open("/sys/class/gpio/unexport", O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: opening 'unexport'");
-    if (write(fd, buf, strlen(buf)+1) < 0) {
+    if (write(fd, buf, len) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errsv, "Closing GPIO: writing 'unexport'");
@@ -258,7 +258,7 @@ static int gpio_sysfs_read(gpio_t *gpio, bool *value) {
 }
 
 static int gpio_sysfs_write(gpio_t *gpio, bool value) {
-    char value_str[][2] = {"0", "1"};
+    char value_str[][2] = {"0\n", "1\n"};
 
     /* Write fd */
     if (write(gpio->line_fd, value_str[value], 2) < 0)
@@ -534,7 +534,7 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     char gpio_path[P_PATH_MAX];
     struct stat stat_buf;
     char buf[16];
-    int ret, fd;
+    int len, fd, ret;
 
     if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
@@ -543,10 +543,10 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u", line);
     if (stat(gpio_path, &stat_buf) < 0) {
         /* Write line number to export file */
-        snprintf(buf, sizeof(buf), "%u", line);
+        len = snprintf(buf, sizeof(buf), "%u\n", line);
         if ((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: opening 'export'");
-        if (write(fd, buf, strlen(buf)+1) < 0) {
+        if (write(fd, buf, len) < 0) {
             int errsv = errno;
             close(fd);
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errsv, "Opening GPIO: writing 'export'");
