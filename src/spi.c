@@ -282,7 +282,7 @@ int spi_tostring(spi_t *spi, char *str, size_t len) {
     if (spi_get_mode(spi, &mode) < 0)
         strncpy(mode_str, "?", sizeof(mode_str));
     else
-        snprintf(mode_str, sizeof(mode_str), "%d", mode);
+        snprintf(mode_str, sizeof(mode_str), "%u", mode);
 
     if (spi_get_max_speed(spi, &max_speed) < 0)
         strncpy(max_speed_str, "?", sizeof(max_speed_str));
