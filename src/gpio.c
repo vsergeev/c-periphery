@@ -209,13 +209,16 @@ static int gpio_sysfs_close(gpio_t *gpio) {
 
     /* Unexport the GPIO */
     len = snprintf(buf, sizeof(buf), "%u\n", gpio->line);
+
     if ((fd = open("/sys/class/gpio/unexport", O_WRONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: opening 'unexport'");
+
     if (write(fd, buf, len) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errsv, "Closing GPIO: writing 'unexport'");
     }
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: closing 'unexport'");
 
@@ -325,13 +328,16 @@ static int gpio_sysfs_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
 
     /* Read direction */
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/direction", gpio->line);
+
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'direction'");
+
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'direction'");
     }
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'direction'");
 
@@ -388,13 +394,16 @@ static int gpio_sysfs_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
 
     /* Read edge */
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/edge", gpio->line);
+
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'edge'");
+
     if ((ret = read(fd, buf, sizeof(buf))) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'edge'");
     }
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'edge'");
 
@@ -470,11 +479,13 @@ static int gpio_sysfs_chip_label(gpio_t *gpio, char *str, size_t len) {
 
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO chip 'label'");
+
     if ((ret = read(fd, str, len)) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO chip 'label'");
     }
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'label'");
 
@@ -554,13 +565,16 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     if (stat(gpio_path, &stat_buf) < 0) {
         /* Write line number to export file */
         len = snprintf(buf, sizeof(buf), "%u\n", line);
+
         if ((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: opening 'export'");
+
         if (write(fd, buf, len) < 0) {
             int errsv = errno;
             close(fd);
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errsv, "Opening GPIO: writing 'export'");
         }
+
         if (close(fd) < 0)
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: closing 'export'");
 
