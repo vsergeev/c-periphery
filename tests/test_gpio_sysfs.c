@@ -47,7 +47,7 @@ void test_open_config_close(void) {
     passert(gpio != NULL);
 
     /* Open non-existent GPIO -- export should fail with EINVAL */
-    passert(gpio_open_sysfs(gpio, -1, GPIO_DIR_IN) == GPIO_ERROR_OPEN);
+    passert(gpio_open_sysfs(gpio, 9999, GPIO_DIR_IN) == GPIO_ERROR_OPEN);
     passert(gpio_errno(gpio) == EINVAL);
 
     /* Open legitimate GPIO */
