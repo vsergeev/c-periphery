@@ -368,71 +368,64 @@ int main(void) {
 
 ## Building
 
-`make` will build c-periphery into a static library.
+Build c-periphery into a static library.
 
 ``` console
+$ mkdir build
+$ cd build
+$ cmake ..
 $ make
-mkdir obj
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/gpio.c -o obj/gpio.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/led.c -o obj/led.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/pwm.c -o obj/pwm.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/spi.c -o obj/spi.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/i2c.c -o obj/i2c.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/mmio.c -o obj/mmio.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/serial.c -o obj/serial.o
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/version.c -o obj/version.o
-ar rcs periphery.a obj/gpio.o obj/led.o obj/pwm.o obj/spi.o obj/i2c.o obj/mmio.o obj/serial.o obj/version.o
-$
+```
+
+Build c-periphery into a shared library.
+
+``` console
+$ mkdir build
+$ cd build
+$ cmake -DBUILD_SHARED_LIBS=ON ..
+$ make
 ```
 
 `make tests` will build the c-periphery tests.
 
 ``` console
 $ make tests
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_led.c periphery.a -o tests/test_led -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_serial.c periphery.a -o tests/test_serial -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_i2c.c periphery.a -o tests/test_i2c -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_gpio_sysfs.c periphery.a -o tests/test_gpio_sysfs -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_mmio.c periphery.a -o tests/test_mmio -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_spi.c periphery.a -o tests/test_spi -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_gpio.c periphery.a -o tests/test_gpio -lpthread
-cc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_pwm.c periphery.a -o tests/test_pwm -lpthread
-$
 ```
 
 ### Cross-compilation
 
-Set the `CROSS_COMPILE` environment variable with the cross-compiler prefix when calling make:
+Set the `CC` environment variable with the cross-compiler :
 
 ``` console
-$ CROSS_COMPILE=arm-linux- make all tests
-mkdir obj
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/gpio.c -o obj/gpio.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/led.c -o obj/led.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/pwm.c -o obj/pwm.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/spi.c -o obj/spi.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/i2c.c -o obj/i2c.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/mmio.c -o obj/mmio.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/serial.c -o obj/serial.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  -c src/version.c -o obj/version.o
-arm-linux-ar rcs periphery.a obj/gpio.o obj/led.o obj/pwm.o obj/spi.o obj/i2c.o obj/mmio.o obj/serial.o obj/version.o
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_led.c periphery.a -o tests/test_led -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_serial.c periphery.a -o tests/test_serial -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_i2c.c periphery.a -o tests/test_i2c -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_gpio_sysfs.c periphery.a -o tests/test_gpio_sysfs -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_mmio.c periphery.a -o tests/test_mmio -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_spi.c periphery.a -o tests/test_spi -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_gpio.c periphery.a -o tests/test_gpio -lpthread
-arm-linux-gcc -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter  -fPIC -DPERIPHERY_VERSION_COMMIT=\"v2.1.0\"  tests/test_pwm.c periphery.a -o tests/test_pwm -lpthread
-$
+$ export CC=arm-linux-gnueabihf-gcc
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
 ```
 
 ## Building c-periphery into another project
 
-Include the header files in `src/` (e.g. `gpio.h`, `led.h`, `pwm.h`, `spi.h`, `i2c.h`, `mmio.h`, `serial.h`) and link in the `periphery.a` static library.
+After build, install shared library and headers with :
+
+``` console
+$ sudo make install
+```
+
+## Building c-periphery into another project with static library
+
+Include the header files in `src/` (e.g. `gpio.h`, `led.h`, `pwm.h`, `spi.h`, `i2c.h`, `mmio.h`, `serial.h`) and link in the `periphery.a`.
 
 ``` console
 $ gcc -I/path/to/periphery/src myprog.c /path/to/periphery/periphery.a -o myprog
+```
+
+## Building c-periphery into another project with shared library
+
+Include the header files in `src/` (e.g. `c-periphery/gpio.h`, `c-periphery/led.h`, `c-periphery/pwm.h`, `c-periphery/spi.h`, `c-periphery/i2c.h`, `c-periphery/mmio.h`, `c-periphery/serial.h`) and link in the `-lperiphery`.
+
+``` console
+$ gcc myprog.c -lperiphery -o myprog
 ```
 
 ## Documentation
