@@ -366,9 +366,11 @@ int main(void) {
 
 [Go to Serial documentation.](docs/serial.md)
 
-## Building
+## Building c-periphery with CMake
 
-Build c-periphery into a static library.
+### Static library
+
+Build c-periphery into a static library:
 
 ``` console
 $ mkdir build
@@ -377,7 +379,9 @@ $ cmake ..
 $ make
 ```
 
-Build c-periphery into a shared library.
+### Shared Library
+
+Build c-periphery into a shared library:
 
 ``` console
 $ mkdir build
@@ -386,7 +390,15 @@ $ cmake -DBUILD_SHARED_LIBS=ON ..
 $ make
 ```
 
-`make tests` will build the c-periphery tests.
+Install the shared library and headers:
+
+``` console
+$ sudo make install
+```
+
+### Tests
+
+Build c-periphery tests from the build directory:
 
 ``` console
 $ make tests
@@ -394,7 +406,7 @@ $ make tests
 
 ### Cross-compilation
 
-Set the `CC` environment variable with the cross-compiler :
+Set the `CC` environment variable with the cross-compiler prior to build:
 
 ``` console
 $ export CC=arm-linux-gnueabihf-gcc
@@ -404,29 +416,58 @@ $ cmake ..
 $ make
 ```
 
-## Building c-periphery into another project
-
-After build, install shared library and headers with :
+If additional cross-compiler tools are needed, use a `CMAKE_TOOLCHAIN_FILE` to fully specify the toolchain parameters:
 
 ``` console
-$ sudo make install
+$ mkdir build
+$ cd build
+$ cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/arm-linux-gnueabihf.cmake ..
+$ make
 ```
 
-## Building c-periphery into another project with static library
+## Building c-periphery with vanilla Make
 
-Include the header files in `src/` (e.g. `gpio.h`, `led.h`, `pwm.h`, `spi.h`, `i2c.h`, `mmio.h`, `serial.h`) and link in the `periphery.a`.
+### Static library
+
+Build c-periphery into a static library:
+
+``` console
+$ make
+```
+
+### Tests
+
+Build c-periphery tests:
+
+``` console
+$ make tests
+```
+
+### Cross-compilation
+
+Set the `CROSS_COMPILE` environment variable with the cross-compiler prefix when building:
+
+``` console
+$ CROSS_COMPILE=arm-linux-gnueabihf- make
+```
+
+## Building c-periphery into another project statically
+
+Include the header files from `src/` and link in the `periphery.a` static library:
 
 ``` console
 $ gcc -I/path/to/periphery/src myprog.c /path/to/periphery/periphery.a -o myprog
 ```
 
-## Building c-periphery into another project with shared library
+## Building c-periphery into another project dynamically
 
-Include the header files in `src/` (e.g. `c-periphery/gpio.h`, `c-periphery/led.h`, `c-periphery/pwm.h`, `c-periphery/spi.h`, `c-periphery/i2c.h`, `c-periphery/mmio.h`, `c-periphery/serial.h`) and link in the `-lperiphery`.
+If the header files and shared library are installed on the system, simply link with `-lperiphery`:
 
 ``` console
 $ gcc myprog.c -lperiphery -o myprog
 ```
+
+Otherwise, additional include (`-I`) and library (`-L`) paths may be required.
 
 ## Documentation
 
