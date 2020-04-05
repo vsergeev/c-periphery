@@ -34,9 +34,22 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_library(periphery ${c_pheriphery_SOURCES} ${c_pheriphery_HEADERS})
 set_target_properties(periphery PROPERTIES SOVERSION ${VERSION})
 
+include(GNUInstallDirs) # for the CMAKE_INSTALL_LIBDIR variable
+
+set(prefix      ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+set(includedir  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+set(libdir      ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
 # Declare install targets
-install(TARGETS periphery DESTINATION lib)
-install(FILES ${c_pheriphery_HEADERS} DESTINATION include/${PROJECT_NAME})
+install(TARGETS periphery DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES ${c_pheriphery_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+
+configure_file(${CMAKE_SOURCE_DIR}/src/libperiphery.pc.in ${CMAKE_BINARY_DIR}/libperiphery.pc @ONLY)
+set(LIBPERIPHERY_PKG_CONFIG_FILES ${CMAKE_BINARY_DIR}/libperiphery.pc)
+message(STATUS "Generate ${LIBPERIPHERY_PKG_CONFIG_FILES}")
+# Install pkg-config files
+install(FILES ${LIBPERIPHERY_PKG_CONFIG_FILES} DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 # Declare tests targets
 foreach(TEST_SOURCE ${c_pheriphery_TESTS})
