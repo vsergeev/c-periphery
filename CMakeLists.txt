@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(c-periphery C)
+project(periphery C)
 
 # Check for Linux kernel headers
 include(CheckIncludeFiles)
@@ -13,9 +13,9 @@ set(VERSION "2.1.0")
 set(SOVERSION ${VERSION})
 
 # Glob sources, headers, tests
-file(GLOB_RECURSE c_periphery_SOURCES src/*.c)
-file(GLOB_RECURSE c_periphery_HEADERS src/*.h)
-file(GLOB_RECURSE c_periphery_TESTS tests/*.c)
+file(GLOB_RECURSE periphery_SOURCES src/*.c)
+file(GLOB_RECURSE periphery_HEADERS src/*.h)
+file(GLOB_RECURSE periphery_TESTS tests/*.c)
 
 # Expose git commit id into COMMIT_ID variable
 execute_process(
@@ -31,15 +31,15 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-unus
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Declare library target
-add_library(periphery ${c_periphery_SOURCES} ${c_periphery_HEADERS})
+add_library(periphery ${periphery_SOURCES} ${periphery_HEADERS})
 set_target_properties(periphery PROPERTIES SOVERSION ${VERSION})
 
 # Declare install targets
 install(TARGETS periphery DESTINATION lib)
-install(FILES ${c_periphery_HEADERS} DESTINATION include/${PROJECT_NAME})
+install(FILES ${periphery_HEADERS} DESTINATION include/${PROJECT_NAME})
 
 # Declare tests targets
-foreach(TEST_SOURCE ${c_periphery_TESTS})
+foreach(TEST_SOURCE ${periphery_TESTS})
     get_filename_component(TEST_PROGRAM ${TEST_SOURCE} NAME_WE)
     add_executable(${TEST_PROGRAM} ${TEST_SOURCE})
     target_link_libraries(${TEST_PROGRAM} periphery pthread)
