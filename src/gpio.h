@@ -57,6 +57,9 @@ void gpio_free(gpio_t *gpio);
 /* Read Event (for character device GPIOs) */
 int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
 
+/* Poll Multiple */
+int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios_ready);
+
 /* Getters */
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);

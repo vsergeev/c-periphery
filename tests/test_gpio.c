@@ -230,6 +230,32 @@ void test_loopback(void) {
     /* Check poll timeout */
     passert(gpio_poll(gpio_in, 1000) == 0);
 
+    /* Test gpio_poll_multiple() API with one GPIO */
+    gpio_t *gpios[1] = {gpio_in};
+    bool gpios_ready[1] = {false};
+
+    /* Check poll falling 1 -> 0 interrupt */
+    passert(gpio_write(gpio_out, false) == 0);
+    passert(gpio_poll_multiple(gpios, 1, 1000, gpios_ready) == 1);
+    passert(gpios_ready[0] == true);
+    passert(gpio_read(gpio_in, &value) == 0);
+    passert(value == false);
+    passert(gpio_read_event(gpio_in, &edge, NULL) == 0);
+    passert(edge == GPIO_EDGE_FALLING);
+
+    /* Check poll rising 0 -> 1 interrupt */
+    passert(gpio_write(gpio_out, true) == 0);
+    passert(gpio_poll_multiple(gpios, 1, 1000, gpios_ready) == 1);
+    passert(gpios_ready[0] == true);
+    passert(gpio_read(gpio_in, &value) == 0);
+    passert(value == true);
+    passert(gpio_read_event(gpio_in, &edge, NULL) == 0);
+    passert(edge == GPIO_EDGE_RISING);
+
+    /* Check poll timeout */
+    passert(gpio_poll_multiple(gpios, 1, 1000, gpios_ready) == 0);
+    passert(gpios_ready[0] == false);
+
     passert(gpio_close(gpio_in) == 0);
     passert(gpio_close(gpio_out) == 0);
 

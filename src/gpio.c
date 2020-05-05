@@ -184,6 +184,48 @@ static int _gpio_error(gpio_t *gpio, int code, int c_errno, const char *fmt, ...
 }
 
 /*********************************************************************************/
+/* GPIO Poll Multiple Implementation */
+/*********************************************************************************/
+
+int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios_ready) {
+    struct pollfd fds[count];
+    int ret;
+
+    /* Setup pollfd structs */
+    for (size_t i = 0; i < count; i++) {
+        fds[i].fd = gpios[i]->line_fd;
+        fds[i].events = (gpios[i]->ops == &gpio_sysfs_ops) ?
+                            (POLLPRI | POLLERR) : (POLLIN | POLLRDNORM);
+        if (gpios_ready)
+            gpios_ready[i] = false;
+    }
+
+    /* Poll */
+    if ((ret = poll(fds, count, timeout_ms)) < 0)
+        return GPIO_ERROR_IO;
+
+    /* Event occurred */
+    if (ret) {
+        for (size_t i = 0; i < count; i++) {
+            /* Set ready GPIOs */
+            if (gpios_ready)
+                gpios_ready[i] = fds[i].revents != 0;
+
+            /* Rewind GPIO if it is a sysfs GPIO */
+            if (gpios[i]->ops == &gpio_sysfs_ops) {
+                if (lseek(gpios[i]->line_fd, 0, SEEK_SET) < 0)
+                    return GPIO_ERROR_IO;
+            }
+        }
+
+        return ret;
+    }
+
+    /* Timed out */
+    return 0;
+}
+
+/*********************************************************************************/
 /* sysfs implementation */
 /*********************************************************************************/
 
