@@ -92,9 +92,11 @@ Returns 0 on success, or a negative [Serial error code](#return-value) on failur
 ``` c
 int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms);
 ```
-Read up to `len` number of bytes from the serial port into the `buf` buffer with the specified millisecond timeout. A 0 timeout can be specified for a non-blocking read. A negative timeout can be specified for a blocking read that will read until all of the requested number of bytes are read. A positive timeout in milliseconds can be specified for a blocking read with timeout.
+Read up to `len` number of bytes from the serial port into the `buf` buffer with the specified millisecond timeout. `timeout_ms` can be positive for a blocking read with a timeout in milliseconds, zero for a non-blocking read, or negative for a blocking read that will block until `length` number of bytes are read.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. `timeout_ms` can be positive for a timeout in milliseconds, 0 for a non-blocking read, or a negative number for a blocking read.
+For a non-blocking or timeout-bound read, `serial_read()` may return less than the requested number of bytes.
+
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. `timeout_ms` can be positive for a blocking read with a timeout in milliseconds, zero for a non-blocking read, or negative for a blocking read.
 
 Returns the number of bytes read on success, 0 on timeout, or a negative [Serial error code](#return-value) on failure.
 
