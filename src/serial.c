@@ -424,6 +424,28 @@ int serial_get_rtscts(serial_t *serial, bool *rtscts) {
     return 0;
 }
 
+int serial_get_vmin(serial_t *serial, unsigned int *vmin) {
+    struct termios termios_settings;
+
+    if (tcgetattr(serial->fd, &termios_settings) < 0)
+        return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
+
+    *vmin = termios_settings.c_cc[VMIN];
+
+    return 0;
+}
+
+int serial_get_vtime(serial_t *serial, float *vtime) {
+    struct termios termios_settings;
+
+    if (tcgetattr(serial->fd, &termios_settings) < 0)
+        return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
+
+    *vtime = ((float)termios_settings.c_cc[VTIME]) / 10;
+
+    return 0;
+}
+
 int serial_set_baudrate(serial_t *serial, uint32_t baudrate) {
     struct termios termios_settings;
 
@@ -540,10 +562,46 @@ int serial_set_rtscts(serial_t *serial, bool enabled) {
     return 0;
 }
 
+int serial_set_vmin(serial_t *serial, unsigned int vmin) {
+    struct termios termios_settings;
+
+    if (vmin > 255)
+        return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid vmin (can be 0-255)");
+
+    if (tcgetattr(serial->fd, &termios_settings) < 0)
+        return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
+
+    termios_settings.c_cc[VMIN] = vmin;
+
+    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+        return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
+
+    return 0;
+}
+
+int serial_set_vtime(serial_t *serial, float vtime) {
+    struct termios termios_settings;
+
+    if (vtime < 0.0 || vtime > 25.5)
+        return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid vtime (can be 0-25.5)");
+
+    if (tcgetattr(serial->fd, &termios_settings) < 0)
+        return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
+
+    termios_settings.c_cc[VTIME] = ((unsigned int)(vtime * 10));
+
+    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+        return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
+
+    return 0;
+}
+
 int serial_tostring(serial_t *serial, char *str, size_t len) {
     struct termios termios_settings;
     uint32_t baudrate;
     const char *databits_str, *parity_str, *stopbits_str, *xonxoff_str, *rtscts_str;
+    unsigned int vmin;
+    float vtime;
 
     /* Instead of calling all of our individual getter functions, let's poll
      * termios attributes once to be efficient. */
@@ -583,7 +641,11 @@ int serial_tostring(serial_t *serial, char *str, size_t len) {
     else
         rtscts_str = "false";
 
-    return snprintf(str, len, "Serial (fd=%d, baudrate=%u, databits=%s, parity=%s, stopbits=%s, xonxoff=%s, rtscts=%s)", serial->fd, baudrate, databits_str, parity_str, stopbits_str, xonxoff_str, rtscts_str);
+    vmin = termios_settings.c_cc[VMIN];
+    vtime = ((float)termios_settings.c_cc[VTIME]) / 10;
+
+    return snprintf(str, len, "Serial (fd=%d, baudrate=%u, databits=%s, parity=%s, stopbits=%s, xonxoff=%s, rtscts=%s, vmin=%u, vtime=%.1f)",
+                    serial->fd, baudrate, databits_str, parity_str, stopbits_str, xonxoff_str, rtscts_str, vmin, vtime);
 }
 
 const char *serial_errmsg(serial_t *serial) {

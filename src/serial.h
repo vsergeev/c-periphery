@@ -55,6 +55,8 @@ int serial_get_parity(serial_t *serial, serial_parity_t *parity);
 int serial_get_stopbits(serial_t *serial, unsigned int *stopbits);
 int serial_get_xonxoff(serial_t *serial, bool *xonxoff);
 int serial_get_rtscts(serial_t *serial, bool *rtscts);
+int serial_get_vmin(serial_t *serial, unsigned int *vmin);
+int serial_get_vtime(serial_t *serial, float* vtime);
 
 /* Setters */
 int serial_set_baudrate(serial_t *serial, uint32_t baudrate);
@@ -63,6 +65,8 @@ int serial_set_parity(serial_t *serial, enum serial_parity parity);
 int serial_set_stopbits(serial_t *serial, unsigned int stopbits);
 int serial_set_xonxoff(serial_t *serial, bool enabled);
 int serial_set_rtscts(serial_t *serial, bool enabled);
+int serial_set_vmin(serial_t *serial, unsigned int vmin);
+int serial_set_vtime(serial_t *serial, float vtime);
 
 /* Miscellaneous */
 int serial_fd(serial_t *serial);

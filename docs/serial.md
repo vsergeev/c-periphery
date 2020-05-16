@@ -208,6 +208,24 @@ Returns 0 on success, or a negative [Serial error code](#return-value) on failur
 ------
 
 ``` c
+int serial_get_vmin(serial_t *serial, unsigned int *vmin);
+int serial_get_vtime(serial_t *serial, float *vtime);
+int serial_set_vmin(serial_t *serial, unsigned int vmin);
+int serial_set_vtime(serial_t *serial, float vtime);
+```
+Get or set the termios VMIN and VTIME settings, respectively, of the underlying `tty` device.
+
+VMIN specifies the minimum number of bytes returned from a blocking read. VTIME specifies the timeout in seconds of a blocking read.
+
+When both VMIN and VTIME settings are configured, VTIME acts as an interbyte timeout that restarts on every byte received, and a blocking read will block until either VMIN bytes are read or the VTIME timeout expires after the last byte read. See the `termios` man page for more information.
+
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. `vmin` can be between 0 and 255. `vtime` can be between 0 and 25.5 seconds, with a resolution of 0.1 seconds.
+
+Returns 1 on success, or a negative [Serial error code](#return-value) on failure.
+
+------
+
+``` c
 int serial_fd(serial_t *serial);
 ```
 Return the file descriptor (for the underlying `tty` device) of the Serial handle.
