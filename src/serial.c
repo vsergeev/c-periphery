@@ -238,18 +238,16 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
 }
 
 int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
-    size_t bytes_left, bytes_read;
     ssize_t ret;
-    fd_set rfds;
-    struct timeval tv_timeout;
 
+    struct timeval tv_timeout;
     tv_timeout.tv_sec = timeout_ms / 1000;
     tv_timeout.tv_usec = (timeout_ms % 1000) * 1000;
 
-    bytes_left = len;
-    bytes_read = 0;
+    size_t bytes_read = 0;
 
-    do {
+    while (bytes_read < len) {
+        fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(serial->fd, &rfds);
 
@@ -260,7 +258,7 @@ int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
         if (ret == 0)
             break;
 
-        if ((ret = read(serial->fd, buf + bytes_read, bytes_left)) < 0)
+        if ((ret = read(serial->fd, buf + bytes_read, len - bytes_read)) < 0)
             return _serial_error(serial, SERIAL_ERROR_IO, errno, "Reading serial port");
 
         /* Empty read */
@@ -268,8 +266,7 @@ int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
             return _serial_error(serial, SERIAL_ERROR_IO, 0, "Reading serial port: unexpected empty read");
 
         bytes_read += ret;
-        bytes_left -= ret;
-    } while (bytes_left > 0);
+    }
 
     return bytes_read;
 }
