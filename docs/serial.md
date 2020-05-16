@@ -96,6 +96,8 @@ Read up to `len` number of bytes from the serial port into the `buf` buffer with
 
 For a non-blocking or timeout-bound read, `serial_read()` may return less than the requested number of bytes.
 
+For a blocking read with the VMIN setting configured, `serial_read()` will block until at least VMIN bytes are read. For a blocking read with both VMIN and VTIME settings configured, `serial_read()` will block until at least VMIN bytes are read or the VTIME interbyte timeout expires after the last byte read. In either case, `serial_read()` may return less than the requested number of bytes.
+
 `serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. `timeout_ms` can be positive for a blocking read with a timeout in milliseconds, zero for a non-blocking read, or negative for a blocking read.
 
 Returns the number of bytes read on success, 0 on timeout, or a negative [Serial error code](#return-value) on failure.

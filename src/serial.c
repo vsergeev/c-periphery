@@ -25,6 +25,7 @@
 
 struct serial_handle {
     int fd;
+    bool use_termios_timeout;
 
     struct {
         int c_errno;
@@ -234,6 +235,8 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errsv, "Setting serial port attributes");
     }
 
+    serial->use_termios_timeout = false;
+
     return 0;
 }
 
@@ -260,6 +263,10 @@ int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
 
         if ((ret = read(serial->fd, buf + bytes_read, len - bytes_read)) < 0)
             return _serial_error(serial, SERIAL_ERROR_IO, errno, "Reading serial port");
+
+        /* If we're using VMIN or VMIN+VTIME semantics for end of read, return now */
+        if (serial->use_termios_timeout)
+            return ret;
 
         /* Empty read */
         if (ret == 0 && len != 0)
@@ -575,6 +582,8 @@ int serial_set_vmin(serial_t *serial, unsigned int vmin) {
 
     if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
+
+    serial->use_termios_timeout = vmin > 0;
 
     return 0;
 }
