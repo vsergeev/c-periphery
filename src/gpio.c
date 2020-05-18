@@ -51,6 +51,7 @@ struct gpio_handle {
     /* gpio-sysfs and gpio-cdev state */
     unsigned int line;
     int line_fd;
+    bool exported;
 
     /* gpio-cdev state */
     int chip_fd;
@@ -249,20 +250,24 @@ static int gpio_sysfs_close(gpio_t *gpio) {
 
     gpio->line_fd = -1;
 
-    /* Unexport the GPIO */
-    len = snprintf(buf, sizeof(buf), "%u\n", gpio->line);
+    /* Unexport the GPIO, if we exported it */
+    if (gpio->exported) {
+        len = snprintf(buf, sizeof(buf), "%u\n", gpio->line);
 
-    if ((fd = open("/sys/class/gpio/unexport", O_WRONLY)) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: opening 'unexport'");
+        if ((fd = open("/sys/class/gpio/unexport", O_WRONLY)) < 0)
+            return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: opening 'unexport'");
 
-    if (write(fd, buf, len) < 0) {
-        int errsv = errno;
-        close(fd);
-        return _gpio_error(gpio, GPIO_ERROR_CLOSE, errsv, "Closing GPIO: writing 'unexport'");
+        if (write(fd, buf, len) < 0) {
+            int errsv = errno;
+            close(fd);
+            return _gpio_error(gpio, GPIO_ERROR_CLOSE, errsv, "Closing GPIO: writing 'unexport'");
+        }
+
+        if (close(fd) < 0)
+            return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: closing 'unexport'");
+
+        gpio->exported = false;
     }
-
-    if (close(fd) < 0)
-        return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO: closing 'unexport'");
 
     return 0;
 }
@@ -598,6 +603,7 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     struct stat stat_buf;
     char buf[16];
     int len, fd, ret;
+    bool exported = false;
 
     if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
@@ -624,10 +630,12 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
         unsigned int retry_count;
         for (retry_count = 0; retry_count < GPIO_SYSFS_EXPORT_STAT_RETRIES; retry_count++) {
             int ret = stat(gpio_path, &stat_buf);
-            if (ret == 0)
+            if (ret == 0) {
+                exported = true;
                 break;
-            else if (ret < 0 && errno != ENOENT)
+            } else if (ret < 0 && errno != ENOENT) {
                 return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: stat 'gpio%u/' after export", line);
+            }
 
             usleep(GPIO_SYSFS_EXPORT_STAT_DELAY);
         }
@@ -644,6 +652,7 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     memset(gpio, 0, sizeof(gpio_t));
     gpio->line_fd = fd;
     gpio->line = line;
+    gpio->exported = exported;
     gpio->ops = &gpio_sysfs_ops;
 
     ret = gpio_sysfs_set_direction(gpio, direction);
