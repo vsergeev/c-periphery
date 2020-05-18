@@ -130,7 +130,7 @@ Poll a GPIO for the edge event configured with `gpio_set_edge()`.
 
 For character device GPIOs, the edge event should be consumed with `gpio_read_event()`. For sysfs GPIOs, the edge event should be consumed with `gpio_read()`.
 
-`gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions. `timeout_ms` can be positive for a timeout in milliseconds, 0 for a non-blocking poll, or a negative number for a blocking poll.
+`gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions. `timeout_ms` can be positive for a timeout in milliseconds, zero for a non-blocking poll, or negative for a blocking poll.
 
 Returns 1 on success (an edge event occurred), 0 on timeout, or a negative [GPIO error code](#return-value) on failure.
 
