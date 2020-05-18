@@ -14,6 +14,8 @@
 
 #include "../src/serial.h"
 
+#define ABS(x) ((x < 0) ? -x : x)
+
 const char *device;
 
 void test_arguments(void) {
@@ -48,6 +50,8 @@ void test_open_config_close(void) {
     unsigned int stopbits;
     bool xonxoff;
     bool rtscts;
+    unsigned int vmin;
+    float vtime;
 
     ptest();
 
@@ -70,6 +74,10 @@ void test_open_config_close(void) {
     passert(xonxoff == false);
     passert(serial_get_rtscts(serial, &rtscts) == 0);
     passert(rtscts == false);
+    passert(serial_get_vmin(serial, &vmin) == 0);
+    passert(vmin == 0);
+    passert(serial_get_vtime(serial, &vtime) == 0);
+    passert(vtime == 0);
 
     /* Change some stuff around */
     passert(serial_set_baudrate(serial, 4800) == 0);
@@ -90,12 +98,17 @@ void test_open_config_close(void) {
     passert(serial_set_xonxoff(serial, true) == 0);
     passert(serial_get_xonxoff(serial, &xonxoff) == 0);
     passert(xonxoff == true);
-    #if 0
+    #if 0 /* Test serial port may not support rtscts */
     passert(serial_set_rtscts(serial, true) == 0);
     passert(serial_get_rtscts(serial, &rtscts) == 0);
     passert(rtscts == true);
     #endif
-    /* Test serial port may not support rtscts */
+    passert(serial_set_vmin(serial, 50) == 0);
+    passert(serial_get_vmin(serial, &vmin) == 0);
+    passert(vmin == 50);
+    passert(serial_set_vtime(serial, 15.3) == 0);
+    passert(serial_get_vtime(serial, &vtime) == 0);
+    passert(ABS(vtime - 15.3) < 0.1);
 
     passert(serial_close(serial) == 0);
 
@@ -159,6 +172,25 @@ void test_loopback(void) {
     /* Assuming we weren't context switched out for a second and weren't on a
      * thin time boundary ;) */
     passert((stop - start) == 0);
+
+    /* Test blocking read with vmin=5 termios timeout */
+    passert(serial_set_vmin(serial, 5) == 0);
+    /* Write 5, read back 5 (== vmin) */
+    passert(serial_write(serial, lorem_ipsum, 5) == 5);
+    passert(serial_flush(serial) == 0);
+    passert(serial_read(serial, buf, sizeof(buf), -1) == 5);
+    passert(memcmp(lorem_ipsum, buf, 5) == 0);
+
+    /* Test blocking read with vmin=5, vtime=2 termios timeout */
+    passert(serial_set_vtime(serial, 2) == 0);
+    /* Write 3, read back 3 (< vmin, but > vtime interbyte timeout) */
+    passert(serial_write(serial, lorem_ipsum, 3) == 3);
+    passert(serial_flush(serial) == 0);
+    start = time(NULL);
+    passert(serial_read(serial, buf, sizeof(buf), -1) == 3);
+    stop = time(NULL);
+    passert(memcmp(lorem_ipsum, buf, 3) == 0);
+    passert((stop - start) > 1);
 
     passert(serial_close(serial) == 0);
 
