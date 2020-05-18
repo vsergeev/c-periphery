@@ -149,7 +149,7 @@ bool serial_poll(serial_t *serial, int timeout_ms);
 ```
 Poll for data available for reading from the serial port.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. `timeout_ms` can be positive for a timeout in milliseconds, 0 for a non-blocking poll, or a negative number for a blocking poll.
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. `timeout_ms` can be positive for a timeout in milliseconds, zero for a non-blocking poll, or negative for a blocking poll.
 
 Returns 1 on success (data available for reading), 0 on timeout, or a negative [Serial error code](#return-value) on failure.
 
