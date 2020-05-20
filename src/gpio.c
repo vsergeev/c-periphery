@@ -39,6 +39,7 @@ struct gpio_ops {
     unsigned int (*line)(gpio_t *gpio);
     int (*fd)(gpio_t *gpio);
     int (*name)(gpio_t *gpio, char *str, size_t len);
+    int (*label)(gpio_t *gpio, char *str, size_t len);
     int (*chip_fd)(gpio_t *gpio);
     int (*chip_name)(gpio_t *gpio, char *str, size_t len);
     int (*chip_label)(gpio_t *gpio, char *str, size_t len);
@@ -147,6 +148,10 @@ int gpio_fd(gpio_t *gpio) {
 
 int gpio_name(gpio_t *gpio, char *str, size_t len) {
     return gpio->ops->name(gpio, str, len);
+}
+
+int gpio_label(gpio_t *gpio, char *str, size_t len) {
+    return gpio->ops->label(gpio, str, len);
 }
 
 int gpio_chip_fd(gpio_t *gpio) {
@@ -487,6 +492,11 @@ static int gpio_sysfs_name(gpio_t *gpio, char *str, size_t len) {
     return 0;
 }
 
+static int gpio_sysfs_label(gpio_t *gpio, char *str, size_t len) {
+    strncpy(str, "", len);
+    return 0;
+}
+
 static int gpio_sysfs_chip_fd(gpio_t *gpio) {
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs has no chip fd");
 }
@@ -596,6 +606,7 @@ static const struct gpio_ops gpio_sysfs_ops = {
     .line = gpio_sysfs_line,
     .fd = gpio_sysfs_fd,
     .name = gpio_sysfs_name,
+    .label = gpio_sysfs_label,
     .chip_fd = gpio_sysfs_chip_fd,
     .chip_name = gpio_sysfs_chip_name,
     .chip_label = gpio_sysfs_chip_label,
@@ -891,6 +902,20 @@ static int gpio_cdev_name(gpio_t *gpio, char *str, size_t len) {
     return 0;
 }
 
+static int gpio_cdev_label(gpio_t *gpio, char *str, size_t len) {
+    struct gpioline_info line_info = {0};
+
+    line_info.line_offset = gpio->u.cdev.line;
+
+    if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEINFO_IOCTL, &line_info) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Querying GPIO line info for line %u", gpio->u.cdev.line);
+
+    strncpy(str, line_info.consumer, len);
+    str[len - 1] = '\0';
+
+    return 0;
+}
+
 static int gpio_cdev_chip_fd(gpio_t *gpio) {
     return gpio->u.cdev.chip_fd;
 }
@@ -926,6 +951,8 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     const char *edge_str;
     char line_name[32];
     const char *line_name_str;
+    char line_label[32];
+    const char *line_label_str;
     char chip_name[32];
     const char *chip_name_str;
     char chip_label[32];
@@ -950,6 +977,11 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     else
         line_name_str = line_name;
 
+    if (gpio_cdev_label(gpio, line_label, sizeof(line_label)) < 0)
+        line_label_str = "<error>";
+    else
+        line_label_str = line_label;
+
     if (gpio_cdev_chip_name(gpio, chip_name, sizeof(chip_name)) < 0)
         chip_name_str = "<error>";
     else
@@ -960,8 +992,8 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     else
         chip_label_str = chip_label;
 
-    return snprintf(str, len, "GPIO %u (name=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
-                    gpio->u.cdev.line, line_name_str, gpio->u.cdev.line_fd, gpio->u.cdev.chip_fd, direction_str, edge_str, chip_name_str, chip_label_str);
+    return snprintf(str, len, "GPIO %u (name=\"%s\", label=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
+                    gpio->u.cdev.line, line_name_str, line_label_str, gpio->u.cdev.line_fd, gpio->u.cdev.chip_fd, direction_str, edge_str, chip_name_str, chip_label_str);
 }
 
 static const struct gpio_ops gpio_cdev_ops = {
@@ -977,6 +1009,7 @@ static const struct gpio_ops gpio_cdev_ops = {
     .line = gpio_cdev_line,
     .fd = gpio_cdev_fd,
     .name = gpio_cdev_name,
+    .label = gpio_cdev_label,
     .chip_fd = gpio_cdev_chip_fd,
     .chip_name = gpio_cdev_chip_name,
     .chip_label = gpio_cdev_chip_label,

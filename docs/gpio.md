@@ -36,6 +36,7 @@ int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
 unsigned int gpio_line(gpio_t *gpio);
 int gpio_fd(gpio_t *gpio);
 int gpio_name(gpio_t *gpio, char *str, size_t len);
+int gpio_label(gpio_t *gpio, char *str, size_t len);
 int gpio_chip_fd(gpio_t *gpio);
 int gpio_chip_name(gpio_t *gpio, char *str, size_t len);
 int gpio_chip_label(gpio_t *gpio, char *str, size_t len);
@@ -234,6 +235,19 @@ This function is a simple accessor to the GPIO handle structure and always succe
 int gpio_name(gpio_t *gpio, char *str, size_t len);
 ```
 Return the line name of the GPIO.
+
+This method is intended for use with character device GPIOs and always returns the empty string for sysfs GPIOs.
+
+`gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
+
+Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
+
+------
+
+``` c
+int gpio_label(gpio_t *gpio, char *str, size_t len);
+```
+Return the line consumer label of the GPIO.
 
 This method is intended for use with character device GPIOs and always returns the empty string for sysfs GPIOs.
 

@@ -7,6 +7,7 @@
 #include "test.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include <sys/wait.h>
@@ -40,6 +41,7 @@ void test_open_config_close(void) {
     bool value;
     gpio_direction_t direction;
     gpio_edge_t edge;
+    char label[32];
 
     ptest();
 
@@ -58,6 +60,10 @@ void test_open_config_close(void) {
     passert(gpio_line(gpio) == pin_output);
     passert(gpio_fd(gpio) >= 0);
     passert(gpio_chip_fd(gpio) >= 0);
+
+    /* Check default label */
+    passert(gpio_label(gpio, label, sizeof(label)) == 0);
+    passert(strncmp(label, "periphery", sizeof(label)) == 0);
 
     /* Invalid direction */
     passert(gpio_set_direction(gpio, 5) == GPIO_ERROR_ARG);

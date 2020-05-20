@@ -72,6 +72,7 @@ int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
 unsigned int gpio_line(gpio_t *gpio);
 int gpio_fd(gpio_t *gpio);
 int gpio_name(gpio_t *gpio, char *str, size_t len);
+int gpio_label(gpio_t *gpio, char *str, size_t len);
 int gpio_chip_fd(gpio_t *gpio);
 int gpio_chip_name(gpio_t *gpio, char *str, size_t len);
 int gpio_chip_label(gpio_t *gpio, char *str, size_t len);
