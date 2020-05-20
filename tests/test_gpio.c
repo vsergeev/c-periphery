@@ -42,6 +42,9 @@ void test_open_config_close(void) {
     gpio_direction_t direction;
     gpio_edge_t edge;
     char label[32];
+    gpio_bias_t bias;
+    gpio_drive_t drive;
+    bool inverted;
 
     ptest();
 
@@ -69,6 +72,10 @@ void test_open_config_close(void) {
     passert(gpio_set_direction(gpio, 5) == GPIO_ERROR_ARG);
     /* Invalid interrupt edge */
     passert(gpio_set_edge(gpio, 5) == GPIO_ERROR_ARG);
+    /* Invalid bias */
+    passert(gpio_set_bias(gpio, 5) == GPIO_ERROR_ARG);
+    /* Invalid drive */
+    passert(gpio_set_drive(gpio, 5) == GPIO_ERROR_ARG);
 
     /* Set direction out, check direction out, check value low */
     passert(gpio_set_direction(gpio, GPIO_DIR_OUT) == 0);
@@ -88,6 +95,29 @@ void test_open_config_close(void) {
     passert(direction == GPIO_DIR_OUT);
     passert(gpio_read(gpio, &value) == 0);
     passert(value == true);
+
+    /* Set drive open drain, check drive open drain */
+    passert(gpio_set_drive(gpio, GPIO_DRIVE_OPEN_DRAIN) == 0);
+    passert(gpio_get_drive(gpio, &drive) == 0);
+    passert(drive == GPIO_DRIVE_OPEN_DRAIN);
+    /* Set drive open source, check drive open source */
+    passert(gpio_set_drive(gpio, GPIO_DRIVE_OPEN_SOURCE) == 0);
+    passert(gpio_get_drive(gpio, &drive) == 0);
+    passert(drive == GPIO_DRIVE_OPEN_SOURCE);
+    /* Set drive default, check drive default */
+    passert(gpio_set_drive(gpio, GPIO_DRIVE_DEFAULT) == 0);
+    passert(gpio_get_drive(gpio, &drive) == 0);
+    passert(drive == GPIO_DRIVE_DEFAULT);
+
+    /* Set inverted true, check inverted true */
+    passert(gpio_set_inverted(gpio, true) == 0);
+    passert(gpio_get_inverted(gpio, &inverted) == 0);
+    passert(inverted == true);
+    /* Set inverted false, check inverted false */
+    passert(gpio_set_inverted(gpio, false) == 0);
+    passert(gpio_get_inverted(gpio, &inverted) == 0);
+    passert(inverted == false);
+
     /* Attempt to set interrupt edge on output GPIO */
     passert(gpio_set_edge(gpio, GPIO_EDGE_RISING) == GPIO_ERROR_INVALID_OPERATION);
     /* Attempt to read event on output GPIO */
@@ -119,6 +149,26 @@ void test_open_config_close(void) {
     passert(gpio_set_edge(gpio, GPIO_EDGE_NONE) == 0);
     passert(gpio_get_edge(gpio, &edge) == 0);
     passert(edge == GPIO_EDGE_NONE);
+
+    /* Set bias pull up, check bias pull up */
+    passert(gpio_set_bias(gpio, GPIO_BIAS_PULL_UP) == 0);
+    passert(gpio_get_bias(gpio, &bias) == 0);
+    passert(bias == GPIO_BIAS_PULL_UP);
+    /* Set bias pull down, check bias pull down */
+    passert(gpio_set_bias(gpio, GPIO_BIAS_PULL_DOWN) == 0);
+    passert(gpio_get_bias(gpio, &bias) == 0);
+    passert(bias == GPIO_BIAS_PULL_DOWN);
+    /* Set bias disable, check bias disable */
+    passert(gpio_set_bias(gpio, GPIO_BIAS_DISABLE) == 0);
+    passert(gpio_get_bias(gpio, &bias) == 0);
+    passert(bias == GPIO_BIAS_DISABLE);
+    /* Set bias default, check bias default */
+    passert(gpio_set_bias(gpio, GPIO_BIAS_DEFAULT) == 0);
+    passert(gpio_get_bias(gpio, &bias) == 0);
+    passert(bias == GPIO_BIAS_DEFAULT);
+
+    /* Attempt to set drive on input GPIO */
+    passert(gpio_set_drive(gpio, GPIO_DRIVE_OPEN_DRAIN) == GPIO_ERROR_INVALID_OPERATION);
 
     /* Close GPIO */
     passert(gpio_close(gpio) == 0);
@@ -261,6 +311,25 @@ void test_loopback(void) {
     /* Check poll timeout */
     passert(gpio_poll_multiple(gpios, 1, 1000, gpios_ready) == 0);
     passert(gpios_ready[0] == false);
+
+    passert(gpio_close(gpio_in) == 0);
+    passert(gpio_close(gpio_out) == 0);
+
+    /* Open both GPIOs as inputs */
+    passert(gpio_open(gpio_in, device, pin_input, GPIO_DIR_IN) == 0);
+    passert(gpio_open(gpio_out, device, pin_output, GPIO_DIR_IN) == 0);
+
+    /* Set bias pull-up, check value is high */
+    passert(gpio_set_bias(gpio_in, GPIO_BIAS_PULL_UP) == 0);
+    usleep(1000);
+    passert(gpio_read(gpio_in, &value) == 0);
+    passert(value == true);
+
+    /* Set bias pull-down, check value is low */
+    passert(gpio_set_bias(gpio_in, GPIO_BIAS_PULL_DOWN) == 0);
+    usleep(1000);
+    passert(gpio_read(gpio_in, &value) == 0);
+    passert(value == false);
 
     passert(gpio_close(gpio_in) == 0);
     passert(gpio_close(gpio_out) == 0);

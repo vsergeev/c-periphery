@@ -34,8 +34,14 @@ struct gpio_ops {
     int (*close)(gpio_t *gpio);
     int (*get_direction)(gpio_t *gpio, gpio_direction_t *direction);
     int (*get_edge)(gpio_t *gpio, gpio_edge_t *edge);
+    int (*get_bias)(gpio_t *gpio, gpio_bias_t *bias);
+    int (*get_drive)(gpio_t *gpio, gpio_drive_t *drive);
+    int (*get_inverted)(gpio_t *gpio, bool *inverted);
     int (*set_direction)(gpio_t *gpio, gpio_direction_t direction);
     int (*set_edge)(gpio_t *gpio, gpio_edge_t edge);
+    int (*set_bias)(gpio_t *gpio, gpio_bias_t bias);
+    int (*set_drive)(gpio_t *gpio, gpio_drive_t drive);
+    int (*set_inverted)(gpio_t *gpio, bool inverted);
     unsigned int (*line)(gpio_t *gpio);
     int (*fd)(gpio_t *gpio);
     int (*name)(gpio_t *gpio, char *str, size_t len);
@@ -56,6 +62,10 @@ struct gpio_handle {
             int chip_fd;
             gpio_direction_t direction;
             gpio_edge_t edge;
+            gpio_bias_t bias;
+            gpio_drive_t drive;
+            bool inverted;
+            char label[32];
         } cdev;
         struct {
             unsigned int line;
@@ -130,12 +140,36 @@ int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     return gpio->ops->get_edge(gpio, edge);
 }
 
+int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
+    return gpio->ops->get_bias(gpio, bias);
+}
+
+int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive) {
+    return gpio->ops->get_drive(gpio, drive);
+}
+
+int gpio_get_inverted(gpio_t *gpio, bool *inverted) {
+    return gpio->ops->get_inverted(gpio, inverted);
+}
+
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     return gpio->ops->set_direction(gpio, direction);
 }
 
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     return gpio->ops->set_edge(gpio, edge);
+}
+
+int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias) {
+    return gpio->ops->set_bias(gpio, bias);
+}
+
+int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive) {
+    return gpio->ops->set_drive(gpio, drive);
+}
+
+int gpio_set_inverted(gpio_t *gpio, bool inverted) {
+    return gpio->ops->set_inverted(gpio, inverted);
 }
 
 unsigned int gpio_line(gpio_t *gpio) {
@@ -479,6 +513,77 @@ static int gpio_sysfs_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     return 0;
 }
 
+static int gpio_sysfs_set_bias(gpio_t *gpio, gpio_bias_t bias) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line bias attribute");
+}
+
+static int gpio_sysfs_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line bias attribute");
+}
+
+static int gpio_sysfs_set_drive(gpio_t *gpio, gpio_drive_t drive) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line drive attribute");
+}
+
+static int gpio_sysfs_get_drive(gpio_t *gpio, gpio_drive_t *drive) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line drive attribute");
+}
+
+static int gpio_sysfs_set_inverted(gpio_t *gpio, bool inverted) {
+    char gpio_path[P_PATH_MAX];
+    static const char *inverted_str[2] = {"0\n", "1\n"};
+    int fd;
+
+    /* Write active_low */
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/active_low", gpio->u.sysfs.line);
+
+    if ((fd = open(gpio_path, O_WRONLY)) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Opening GPIO 'active_low'");
+
+    if (write(fd, inverted_str[inverted], strlen(inverted_str[inverted])) < 0) {
+        int errsv = errno;
+        close(fd);
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errsv, "Writing GPIO 'active_low'");
+    }
+
+    if (close(fd) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Closing GPIO 'active_low'");
+
+    return 0;
+}
+
+static int gpio_sysfs_get_inverted(gpio_t *gpio, bool *inverted) {
+    char gpio_path[P_PATH_MAX];
+    char buf[4];
+    int fd, ret;
+
+    /* Read active_low */
+    snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/active_low", gpio->u.sysfs.line);
+
+    if ((fd = open(gpio_path, O_RDONLY)) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'active_low'");
+
+    if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+        int errsv = errno;
+        close(fd);
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'active_low'");
+    }
+
+    if (close(fd) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'active_low'");
+
+    buf[ret] = '\0';
+
+    if (buf[0] == '0')
+        *inverted = false;
+    else if (buf[0] == '1')
+        *inverted = true;
+    else
+        return _gpio_error(gpio, GPIO_ERROR_QUERY, 0, "Unknown GPIO active_low value");
+
+    return 0;
+}
+
 static unsigned int gpio_sysfs_line(gpio_t *gpio) {
     return gpio->u.sysfs.line;
 }
@@ -560,6 +665,8 @@ static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
     const char *direction_str;
     gpio_edge_t edge;
     const char *edge_str;
+    bool inverted;
+    const char *inverted_str;
     char chip_name[32];
     const char *chip_name_str;
     char chip_label[32];
@@ -579,6 +686,11 @@ static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
                    (edge == GPIO_EDGE_FALLING) ? "falling" :
                    (edge == GPIO_EDGE_BOTH) ? "both" : "unknown";
 
+    if (gpio_sysfs_get_inverted(gpio, &inverted) < 0)
+        inverted_str = "<error>";
+    else
+        inverted_str = inverted ? "true" : "false";
+
     if (gpio_sysfs_chip_name(gpio, chip_name, sizeof(chip_name)) < 0)
         chip_name_str = "<error>";
     else
@@ -589,8 +701,8 @@ static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
     else
         chip_label_str = chip_label;
 
-    return snprintf(str, len, "GPIO %u (fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=sysfs)",
-                    gpio->u.sysfs.line, gpio->u.sysfs.line_fd, direction_str, edge_str, chip_name_str, chip_label_str);
+    return snprintf(str, len, "GPIO %u (fd=%d, direction=%s, edge=%s, inverted=%s, chip_name=\"%s\", chip_label=\"%s\", type=sysfs)",
+                    gpio->u.sysfs.line, gpio->u.sysfs.line_fd, direction_str, edge_str, inverted_str, chip_name_str, chip_label_str);
 }
 
 static const struct gpio_ops gpio_sysfs_ops = {
@@ -601,8 +713,14 @@ static const struct gpio_ops gpio_sysfs_ops = {
     .close = gpio_sysfs_close,
     .get_direction = gpio_sysfs_get_direction,
     .get_edge = gpio_sysfs_get_edge,
+    .get_bias = gpio_sysfs_get_bias,
+    .get_drive = gpio_sysfs_get_drive,
+    .get_inverted = gpio_sysfs_get_inverted,
     .set_direction = gpio_sysfs_set_direction,
     .set_edge = gpio_sysfs_set_edge,
+    .set_bias = gpio_sysfs_set_bias,
+    .set_drive = gpio_sysfs_set_drive,
+    .set_inverted = gpio_sysfs_set_inverted,
     .line = gpio_sysfs_line,
     .fd = gpio_sysfs_fd,
     .name = gpio_sysfs_name,
@@ -713,12 +831,43 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
 /* cdev implementation */
 /*********************************************************************************/
 
-static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge) {
-    static const char gpio_label[] = "periphery";
+static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge, gpio_bias_t bias, gpio_drive_t drive, bool inverted) {
+    uint32_t flags = 0;
+
+    #ifdef GPIOHANDLE_REQUEST_BIAS_PULL_UP
+    if (bias == GPIO_BIAS_PULL_UP)
+        flags |= GPIOHANDLE_REQUEST_BIAS_PULL_UP;
+    else if (bias == GPIO_BIAS_PULL_DOWN)
+        flags |= GPIOHANDLE_REQUEST_BIAS_PULL_DOWN;
+    else if (bias == GPIO_BIAS_DISABLE)
+        flags |= GPIOHANDLE_REQUEST_BIAS_DISABLE;
+    #else
+    if (bias != GPIO_BIAS_DEFAULT)
+        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring GPIO line bias");
+    #endif
+
+    #ifdef GPIOHANDLE_REQUEST_OPEN_DRAIN
+    if (drive == GPIO_DRIVE_OPEN_DRAIN)
+        flags |= GPIOHANDLE_REQUEST_OPEN_DRAIN;
+    else if (drive == GPIO_DRIVE_OPEN_SOURCE)
+        flags |= GPIOHANDLE_REQUEST_OPEN_SOURCE;
+    #else
+    if (drive != GPIO_DRIVE_DEFAULT)
+        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring GPIO line drive");
+    #endif
+
+    if (inverted)
+        flags |= GPIOHANDLE_REQUEST_ACTIVE_LOW;
+
+    /* FIXME this should really use GPIOHANDLE_SET_CONFIG_IOCTL instead of
+     * closing and reopening, especially to preserve output value on
+     * configuration changes */
 
     if (gpio->u.cdev.line_fd >= 0) {
         if (close(gpio->u.cdev.line_fd) < 0)
             return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO line");
+
+        gpio->u.cdev.line_fd = -1;
     }
 
     if (direction == GPIO_DIR_IN) {
@@ -726,50 +875,51 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
             struct gpiohandle_request request = {0};
 
             request.lineoffsets[0] = gpio->u.cdev.line;
-            request.flags = GPIOHANDLE_REQUEST_INPUT;
-            strncpy(request.consumer_label, gpio_label, sizeof(request.consumer_label));
+            request.flags = flags | GPIOHANDLE_REQUEST_INPUT;
+            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label));
             request.lines = 1;
 
             if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEHANDLE_IOCTL, &request) < 0)
                 return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening input line handle");
 
             gpio->u.cdev.line_fd = request.fd;
-            gpio->u.cdev.direction = GPIO_DIR_IN;
-            gpio->u.cdev.edge = GPIO_EDGE_NONE;
         } else {
             struct gpioevent_request request = {0};
 
             request.lineoffset = gpio->u.cdev.line;
-            request.handleflags = GPIOHANDLE_REQUEST_INPUT;
+            request.handleflags = flags | GPIOHANDLE_REQUEST_INPUT;
             request.eventflags = (edge == GPIO_EDGE_RISING) ? GPIOEVENT_REQUEST_RISING_EDGE :
                                  (edge == GPIO_EDGE_FALLING) ? GPIOEVENT_REQUEST_FALLING_EDGE :
                                                                GPIOEVENT_REQUEST_BOTH_EDGES;
-            strncpy(request.consumer_label, gpio_label, sizeof(request.consumer_label));
+            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label));
 
             if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEEVENT_IOCTL, &request) < 0)
                 return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening input event line handle");
 
             gpio->u.cdev.line_fd = request.fd;
-            gpio->u.cdev.direction = GPIO_DIR_IN;
-            gpio->u.cdev.edge = edge;
         }
     } else {
         struct gpiohandle_request request = {0};
         bool initial_value = (direction == GPIO_DIR_OUT_HIGH) ? true : false;
+        initial_value ^= inverted;
 
         request.lineoffsets[0] = gpio->u.cdev.line;
-        request.flags = GPIOHANDLE_REQUEST_OUTPUT;
+        request.flags = flags | GPIOHANDLE_REQUEST_OUTPUT;
         request.default_values[0] = initial_value;
-        strncpy(request.consumer_label, gpio_label, sizeof(request.consumer_label));
+        strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label));
         request.lines = 1;
 
         if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEHANDLE_IOCTL, &request) < 0)
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening output line handle");
 
         gpio->u.cdev.line_fd = request.fd;
-        gpio->u.cdev.direction = GPIO_DIR_OUT;
-        gpio->u.cdev.edge = GPIO_EDGE_NONE;
     }
+
+    gpio->u.cdev.direction = (direction == GPIO_DIR_IN) ? GPIO_DIR_IN : GPIO_DIR_OUT;
+    gpio->u.cdev.edge = edge;
+    gpio->u.cdev.bias = bias;
+    gpio->u.cdev.drive = drive;
+    gpio->u.cdev.inverted = inverted;
 
     return 0;
 }
@@ -857,6 +1007,21 @@ static int gpio_cdev_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     return 0;
 }
 
+static int gpio_cdev_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
+    *bias = gpio->u.cdev.bias;
+    return 0;
+}
+
+static int gpio_cdev_get_drive(gpio_t *gpio, gpio_drive_t *drive) {
+    *drive = gpio->u.cdev.drive;
+    return 0;
+}
+
+static int gpio_cdev_get_inverted(gpio_t *gpio, bool *inverted) {
+    *inverted = gpio->u.cdev.inverted;
+    return 0;
+}
+
 static int gpio_cdev_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
@@ -864,7 +1029,7 @@ static int gpio_cdev_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     if (gpio->u.cdev.direction == direction)
         return 0;
 
-    return _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE);
+    return _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
 }
 
 static int gpio_cdev_set_edge(gpio_t *gpio, gpio_edge_t edge) {
@@ -877,7 +1042,37 @@ static int gpio_cdev_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     if (gpio->u.cdev.edge == edge)
         return 0;
 
-    return _gpio_cdev_reopen(gpio, GPIO_DIR_IN, edge);
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, edge, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
+}
+
+static int gpio_cdev_set_bias(gpio_t *gpio, gpio_bias_t bias) {
+    if (bias != GPIO_BIAS_DEFAULT && bias != GPIO_BIAS_PULL_UP && bias != GPIO_BIAS_PULL_DOWN && bias != GPIO_BIAS_DISABLE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO line bias (can be default, pull_up, pull_down, disable)");
+
+    if (gpio->u.cdev.bias == bias)
+        return 0;
+
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
+}
+
+static int gpio_cdev_set_drive(gpio_t *gpio, gpio_drive_t drive) {
+    if (drive != GPIO_DRIVE_DEFAULT && drive != GPIO_DRIVE_OPEN_DRAIN && drive != GPIO_DRIVE_OPEN_SOURCE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO line drive (can be default, open_drain, open_source)");
+
+    if (gpio->u.cdev.direction != GPIO_DIR_OUT && drive != GPIO_DRIVE_DEFAULT)
+        return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: cannot set line drive on input GPIO");
+
+    if (gpio->u.cdev.drive == drive)
+        return 0;
+
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, gpio->u.cdev.bias, drive, gpio->u.cdev.inverted);
+}
+
+static int gpio_cdev_set_inverted(gpio_t *gpio, bool inverted) {
+    if (gpio->u.cdev.inverted == inverted)
+        return 0;
+
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, gpio->u.cdev.bias, gpio->u.cdev.drive, inverted);
 }
 
 static unsigned int gpio_cdev_line(gpio_t *gpio) {
@@ -949,6 +1144,12 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     const char *direction_str;
     gpio_edge_t edge;
     const char *edge_str;
+    gpio_bias_t bias;
+    const char *bias_str;
+    gpio_drive_t drive;
+    const char *drive_str;
+    bool inverted;
+    const char *inverted_str;
     char line_name[32];
     const char *line_name_str;
     char line_label[32];
@@ -972,6 +1173,26 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
                    (edge == GPIO_EDGE_FALLING) ? "falling" :
                    (edge == GPIO_EDGE_BOTH) ? "both" : "unknown";
 
+    if (gpio_cdev_get_bias(gpio, &bias) < 0)
+        bias_str = "<error>";
+    else
+        bias_str = (bias == GPIO_BIAS_DEFAULT) ? "default" :
+                   (bias == GPIO_BIAS_PULL_UP) ? "pull_up" :
+                   (bias == GPIO_BIAS_PULL_DOWN) ? "pull_down" :
+                   (bias == GPIO_BIAS_DISABLE) ? "disable" : "unknown";
+
+    if (gpio_cdev_get_drive(gpio, &drive) < 0)
+        drive_str = "<error>";
+    else
+        drive_str = (drive == GPIO_DRIVE_DEFAULT) ? "default" :
+                    (drive == GPIO_DRIVE_OPEN_DRAIN) ? "open_drain" :
+                    (drive == GPIO_DRIVE_OPEN_SOURCE) ? "open_source" : "unknown";
+
+    if (gpio_cdev_get_inverted(gpio, &inverted) < 0)
+        inverted_str = "<error>";
+    else
+        inverted_str = inverted ? "true" : "false";
+
     if (gpio_cdev_name(gpio, line_name, sizeof(line_name)) < 0)
         line_name_str = "<error>";
     else
@@ -992,8 +1213,8 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     else
         chip_label_str = chip_label;
 
-    return snprintf(str, len, "GPIO %u (name=\"%s\", label=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
-                    gpio->u.cdev.line, line_name_str, line_label_str, gpio->u.cdev.line_fd, gpio->u.cdev.chip_fd, direction_str, edge_str, chip_name_str, chip_label_str);
+    return snprintf(str, len, "GPIO %u (name=\"%s\", label=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, bias=%s, drive=%s, inverted=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
+                    gpio->u.cdev.line, line_name_str, line_label_str, gpio->u.cdev.line_fd, gpio->u.cdev.chip_fd, direction_str, edge_str, bias_str, drive_str, inverted_str, chip_name_str, chip_label_str);
 }
 
 static const struct gpio_ops gpio_cdev_ops = {
@@ -1004,8 +1225,14 @@ static const struct gpio_ops gpio_cdev_ops = {
     .close = gpio_cdev_close,
     .get_direction = gpio_cdev_get_direction,
     .get_edge = gpio_cdev_get_edge,
+    .get_bias = gpio_cdev_get_bias,
+    .get_drive = gpio_cdev_get_drive,
+    .get_inverted = gpio_cdev_get_inverted,
     .set_direction = gpio_cdev_set_direction,
     .set_edge = gpio_cdev_set_edge,
+    .set_bias = gpio_cdev_set_bias,
+    .set_drive = gpio_cdev_set_drive,
+    .set_inverted = gpio_cdev_set_inverted,
     .line = gpio_cdev_line,
     .fd = gpio_cdev_fd,
     .name = gpio_cdev_name,
@@ -1031,9 +1258,10 @@ int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_
     gpio->u.cdev.line = line;
     gpio->u.cdev.line_fd = -1;
     gpio->u.cdev.chip_fd = fd;
+    strncpy(gpio->u.cdev.label, "periphery", sizeof(gpio->u.cdev.label));
 
     /* Open GPIO line */
-    ret = _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE);
+    ret = _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE, GPIO_BIAS_DEFAULT, GPIO_DRIVE_DEFAULT, false);
     if (ret < 0) {
         close(fd);
         return ret;
@@ -1089,9 +1317,10 @@ int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direct
     gpio->u.cdev.line = line;
     gpio->u.cdev.line_fd = -1;
     gpio->u.cdev.chip_fd = fd;
+    strncpy(gpio->u.cdev.label, "periphery", sizeof(gpio->u.cdev.label));
 
     /* Open GPIO line */
-    ret = _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE);
+    ret = _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE, GPIO_BIAS_DEFAULT, GPIO_DRIVE_DEFAULT, false);
     if (ret < 0) {
         close(fd);
         return ret;

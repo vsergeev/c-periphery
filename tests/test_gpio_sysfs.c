@@ -39,6 +39,9 @@ void test_open_config_close(void) {
     bool value;
     gpio_direction_t direction;
     gpio_edge_t edge;
+    gpio_bias_t bias;
+    gpio_drive_t drive;
+    bool inverted;
 
     ptest();
 
@@ -61,6 +64,12 @@ void test_open_config_close(void) {
     passert(gpio_set_direction(gpio, 5) == GPIO_ERROR_ARG);
     /* Invalid interrupt edge */
     passert(gpio_set_edge(gpio, 5) == GPIO_ERROR_ARG);
+    /* Unsupported setting bias */
+    passert(gpio_set_bias(gpio, GPIO_BIAS_PULL_UP) == GPIO_ERROR_UNSUPPORTED);
+    passert(gpio_get_bias(gpio, &bias) == GPIO_ERROR_UNSUPPORTED);
+    /* Unsupported setting drive */
+    passert(gpio_set_drive(gpio, GPIO_DRIVE_OPEN_DRAIN) == GPIO_ERROR_UNSUPPORTED);
+    passert(gpio_get_drive(gpio, &drive) == GPIO_ERROR_UNSUPPORTED);
     /* Unsupported property */
     passert(gpio_chip_fd(gpio) == GPIO_ERROR_UNSUPPORTED);
     /* Unsupported method */
@@ -84,6 +93,15 @@ void test_open_config_close(void) {
     passert(direction == GPIO_DIR_OUT);
     passert(gpio_read(gpio, &value) == 0);
     passert(value == true);
+
+    /* Set inverted true, check inverted */
+    passert(gpio_set_inverted(gpio, true) == 0);
+    passert(gpio_get_inverted(gpio, &inverted) == 0);
+    passert(inverted == true);
+    /* Set inverted false, check inverted */
+    passert(gpio_set_inverted(gpio, false) == 0);
+    passert(gpio_get_inverted(gpio, &inverted) == 0);
+    passert(inverted == false);
 
     /* Set direction in, check direction in */
     passert(gpio_set_direction(gpio, GPIO_DIR_IN) == 0);

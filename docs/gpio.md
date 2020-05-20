@@ -27,10 +27,16 @@ int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios
 /* Getters */
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
+int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias);
+int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive);
+int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 
 /* Setters */
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
+int gpio_set_bias(gpio_t *gpio, gpio_bias_t edge);
+int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
+int gpio_set_inverted(gpio_t *gpio, bool inverted);
 
 /* Miscellaneous Properties */
 unsigned int gpio_line(gpio_t *gpio);
@@ -60,6 +66,17 @@ const char *gpio_errmsg(gpio_t *gpio);
     * `GPIO_EDGE_RISING`: Rising edge (0 -> 1 transition)
     * `GPIO_EDGE_FALLING`: Falling edge (1 -> 0 transition)
     * `GPIO_EDGE_BOTH`: Both edges (X -> !X transition)
+
+* `gpio_bias_t`
+    * `GPIO_BIAS_DEFAULT`: Default line bias
+    * `GPIO_BIAS_PULL_UP`: Pull-up
+    * `GPIO_BIAS_PULL_DOWN`: Pull-down
+    * `GPIO_BIAS_DISABLE`: Disable line bias
+
+* `gpio_drive_t`
+    * `GPIO_DRIVE_DEFAULT`: Default line drive (push-pull)
+    * `GPIO_DRIVE_OPEN_DRAIN`: Open drain
+    * `GPIO_DRIVE_OPEN_SOURCE`: Open source
 
 ### DESCRIPTION
 
@@ -188,8 +205,13 @@ Free a GPIO handle.
 ```c
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
+int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias);
+int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive);
+int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 ```
-Get the configured direction or interrupt edge, respectively, of the GPIO.
+Get the configured direction, interrupt edge, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
+
+Line bias and line drive properties are not supported by sysfs GPIOs.
 
 `gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
 
@@ -200,8 +222,13 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ```c
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
+int gpio_set_bias(gpio_t *gpio, gpio_bias_t edge);
+int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
+int gpio_set_inverted(gpio_t *gpio, bool inverted);
 ```
-Set the direction or interrupt edge, respectively, of the GPIO.
+Set the direction, interrupt edge, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
+
+Line bias and line drive properties are not supported by sysfs GPIOs.
 
 `gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
 

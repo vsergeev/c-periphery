@@ -41,6 +41,19 @@ typedef enum gpio_edge {
     GPIO_EDGE_BOTH      /* Both edges X -> !X */
 } gpio_edge_t;
 
+typedef enum gpio_bias {
+    GPIO_BIAS_DEFAULT,      /* Default line bias */
+    GPIO_BIAS_PULL_UP,      /* Pull-up */
+    GPIO_BIAS_PULL_DOWN,    /* Pull-down */
+    GPIO_BIAS_DISABLE,      /* Disable line bias */
+} gpio_bias_t;
+
+typedef enum gpio_drive {
+    GPIO_DRIVE_DEFAULT,     /* Default line drive (push-pull) */
+    GPIO_DRIVE_OPEN_DRAIN,  /* Open drain */
+    GPIO_DRIVE_OPEN_SOURCE, /* Open source */
+} gpio_drive_t;
+
 typedef struct gpio_handle gpio_t;
 
 /* Primary Functions */
@@ -63,10 +76,16 @@ int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios
 /* Getters */
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
+int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias);
+int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive);
+int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 
 /* Setters */
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
+int gpio_set_bias(gpio_t *gpio, gpio_bias_t edge);
+int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
+int gpio_set_inverted(gpio_t *gpio, bool inverted);
 
 /* Miscellaneous Properties */
 unsigned int gpio_line(gpio_t *gpio);
