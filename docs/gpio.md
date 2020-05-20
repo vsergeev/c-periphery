@@ -11,6 +11,8 @@ GPIO wrapper functions for Linux userspace character device `gpio-cdev` and sysf
 gpio_t *gpio_new(void);
 int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction);
 int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction);
+int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config);
+int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config);
 int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction);
 int gpio_read(gpio_t *gpio, bool *value);
 int gpio_write(gpio_t *gpio, bool value);
@@ -106,6 +108,46 @@ int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direct
 Open the character device GPIO with the specified GPIO name and direction at the specified character device GPIO chip path (e.g. `/dev/gpiochip0`).
 
 `gpio` should be a valid pointer to an allocated GPIO handle structure. `path` is the GPIO chip character device path. `name` is the GPIO line name. `direction` is one of the direction values enumerated [above](#enumerations).
+
+Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
+
+------
+
+``` c
+typedef struct gpio_config {
+    gpio_direction_t direction;
+    gpio_edge_t edge;
+    gpio_bias_t bias;
+    gpio_drive_t drive;
+    bool inverted;
+    const char *label;
+} gpio_config_t;
+
+int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config);
+```
+Open the character device GPIO with the specified GPIO line and configuration at the specified character device GPIO chip path (e.g. `/dev/gpiochip0`).
+
+`gpio` should be a valid pointer to an allocated GPIO handle structure. `path` is the GPIO chip character device path. `line` is the GPIO line number. `config` should be a valid pointer to a `gpio_config_t` structure with valid values. `label` can be `NULL` for a default consumer label.
+
+Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
+
+------
+
+``` c
+typedef struct gpio_config {
+    gpio_direction_t direction;
+    gpio_edge_t edge;
+    gpio_bias_t bias;
+    gpio_drive_t drive;
+    bool inverted;
+    const char *label;
+} gpio_config_t;
+
+int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config);
+```
+Open the character device GPIO with the specified GPIO name and configuration at the specified character device GPIO chip path (e.g. `/dev/gpiochip0`).
+
+`gpio` should be a valid pointer to an allocated GPIO handle structure. `path` is the GPIO chip character device path. `name` is the GPIO line name. `config` should be a valid pointer to a `gpio_config_t` structure with valid values. `label` can be `NULL` for a default consumer label.
 
 Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 

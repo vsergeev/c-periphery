@@ -54,12 +54,24 @@ typedef enum gpio_drive {
     GPIO_DRIVE_OPEN_SOURCE, /* Open source */
 } gpio_drive_t;
 
+/* Configuration structure for gpio_open_*advanced() functions */
+typedef struct gpio_config {
+    gpio_direction_t direction;
+    gpio_edge_t edge;
+    gpio_bias_t bias;
+    gpio_drive_t drive;
+    bool inverted;
+    const char *label; /* Can be NULL for default consumer label */
+} gpio_config_t;
+
 typedef struct gpio_handle gpio_t;
 
 /* Primary Functions */
 gpio_t *gpio_new(void);
 int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction);
 int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction);
+int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config);
+int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config);
 int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction);
 int gpio_read(gpio_t *gpio, bool *value);
 int gpio_write(gpio_t *gpio, bool value);

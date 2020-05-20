@@ -173,6 +173,43 @@ void test_open_config_close(void) {
     /* Close GPIO */
     passert(gpio_close(gpio) == 0);
 
+    /* Open GPIO with advanced open */
+    gpio_config_t config = {
+        .direction = GPIO_DIR_IN,
+        .edge = GPIO_EDGE_RISING,
+        .bias = GPIO_BIAS_DEFAULT,
+        .drive = GPIO_DRIVE_DEFAULT,
+        .inverted = false,
+        .label = "test123",
+    };
+    passert(gpio_open_advanced(gpio, device, pin_input, &config) == 0);
+
+    /* Check properties */
+    passert(gpio_line(gpio) == pin_input);
+    passert(gpio_fd(gpio) >= 0);
+    passert(gpio_chip_fd(gpio) >= 0);
+    /* Check direction */
+    passert(gpio_get_direction(gpio, &direction) == 0);
+    passert(direction == GPIO_DIR_IN);
+    /* Check edge */
+    passert(gpio_get_edge(gpio, &edge) == 0);
+    passert(edge == GPIO_EDGE_RISING);
+    /* Check bias */
+    passert(gpio_get_bias(gpio, &bias) == 0);
+    passert(bias == GPIO_BIAS_DEFAULT);
+    /* Check drive */
+    passert(gpio_get_drive(gpio, &drive) == 0);
+    passert(drive == GPIO_DRIVE_DEFAULT);
+    /* Check inverted */
+    passert(gpio_get_inverted(gpio, &inverted) == 0);
+    passert(inverted == false);
+    /* Check label */
+    passert(gpio_label(gpio, label, sizeof(label)) == 0);
+    passert(strncmp(label, "test123", sizeof(label)) == 0);
+
+    /* Close GPIO */
+    passert(gpio_close(gpio) == 0);
+
     /* Free GPIO */
     gpio_free(gpio);
 }

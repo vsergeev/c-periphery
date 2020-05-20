@@ -1247,11 +1247,26 @@ static const struct gpio_ops gpio_cdev_ops = {
     .tostring = gpio_cdev_tostring,
 };
 
-int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction) {
+int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config) {
     int ret, fd;
 
-    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
+    if (config->direction != GPIO_DIR_IN && config->direction != GPIO_DIR_OUT && config->direction != GPIO_DIR_OUT_LOW && config->direction != GPIO_DIR_OUT_HIGH)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
+
+    if (config->edge != GPIO_EDGE_NONE && config->edge != GPIO_EDGE_RISING && config->edge != GPIO_EDGE_FALLING && config->edge != GPIO_EDGE_BOTH)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO interrupt edge (can be none, rising, falling, both)");
+
+    if (config->direction != GPIO_DIR_IN && config->edge != GPIO_EDGE_NONE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO edge for output GPIO");
+
+    if (config->bias != GPIO_BIAS_DEFAULT && config->bias != GPIO_BIAS_PULL_UP && config->bias != GPIO_BIAS_PULL_DOWN && config->bias != GPIO_BIAS_DISABLE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO line bias (can be default, pull_up, pull_down, disable)");
+
+    if (config->drive != GPIO_DRIVE_DEFAULT && config->drive != GPIO_DRIVE_OPEN_DRAIN && config->drive != GPIO_DRIVE_OPEN_SOURCE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO line drive (can be default, open_drain, open_source)");
+
+    if (config->direction == GPIO_DIR_IN && config->drive != GPIO_DRIVE_DEFAULT)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO line drive for input GPIO");
 
     /* Open GPIO chip */
     if ((fd = open(path, 0)) < 0)
@@ -1262,10 +1277,11 @@ int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_
     gpio->u.cdev.line = line;
     gpio->u.cdev.line_fd = -1;
     gpio->u.cdev.chip_fd = fd;
-    strncpy(gpio->u.cdev.label, "periphery", sizeof(gpio->u.cdev.label));
+    strncpy(gpio->u.cdev.label, config->label ? config->label : "periphery", sizeof(gpio->u.cdev.label));
+    gpio->u.cdev.label[sizeof(gpio->u.cdev.label) - 1] = '\0';
 
     /* Open GPIO line */
-    ret = _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE, GPIO_BIAS_DEFAULT, GPIO_DRIVE_DEFAULT, false);
+    ret = _gpio_cdev_reopen(gpio, config->direction, config->edge, config->bias, config->drive, config->inverted);
     if (ret < 0) {
         close(fd);
         return ret;
@@ -1274,11 +1290,8 @@ int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_
     return 0;
 }
 
-int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction) {
-    int ret, fd;
-
-    if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
-        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
+int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config) {
+    int fd;
 
     /* Open GPIO chip */
     if ((fd = open(path, 0)) < 0)
@@ -1316,19 +1329,34 @@ int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direct
         return _gpio_error(gpio, GPIO_ERROR_NOT_FOUND, 0, "GPIO line \"%s\" not found by name", name);
     }
 
-    memset(gpio, 0, sizeof(gpio_t));
-    gpio->ops = &gpio_cdev_ops;
-    gpio->u.cdev.line = line;
-    gpio->u.cdev.line_fd = -1;
-    gpio->u.cdev.chip_fd = fd;
-    strncpy(gpio->u.cdev.label, "periphery", sizeof(gpio->u.cdev.label));
+    if (close(fd) < 0)
+        return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO chip");
 
-    /* Open GPIO line */
-    ret = _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE, GPIO_BIAS_DEFAULT, GPIO_DRIVE_DEFAULT, false);
-    if (ret < 0) {
-        close(fd);
-        return ret;
-    }
+    return gpio_open_advanced(gpio, path, line, config);
+}
 
-    return 0;
+int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction) {
+    gpio_config_t config = {
+        .direction = direction,
+        .edge = GPIO_EDGE_NONE,
+        .bias = GPIO_BIAS_DEFAULT,
+        .drive = GPIO_DRIVE_DEFAULT,
+        .inverted = false,
+        .label = NULL,
+    };
+
+    return gpio_open_advanced(gpio, path, line, &config);
+}
+
+int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction) {
+    gpio_config_t config = {
+        .direction = direction,
+        .edge = GPIO_EDGE_NONE,
+        .bias = GPIO_BIAS_DEFAULT,
+        .drive = GPIO_DRIVE_DEFAULT,
+        .inverted = false,
+        .label = NULL,
+    };
+
+    return gpio_open_name_advanced(gpio, path, name, &config);
 }
