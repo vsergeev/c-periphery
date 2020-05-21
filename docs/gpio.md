@@ -87,7 +87,7 @@ int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direct
 ```
 Open the character device GPIO with the specified GPIO name and direction at the specified character device GPIO chip path (e.g. `/dev/gpiochip0`).
 
-`gpio` should be a valid pointer to an allocated GPIO handle structure. `path` is the GPIO chip character device path. `line` is the GPIO line name. `direction` is one of the direction values enumerated [above](#enumerations).
+`gpio` should be a valid pointer to an allocated GPIO handle structure. `path` is the GPIO chip character device path. `name` is the GPIO line name. `direction` is one of the direction values enumerated [above](#enumerations).
 
 Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 
