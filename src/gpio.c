@@ -556,13 +556,13 @@ static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
     const char *chip_label_str;
 
     if (gpio_sysfs_get_direction(gpio, &direction) < 0)
-        direction_str = "?";
+        direction_str = "<error>";
     else
         direction_str = (direction == GPIO_DIR_IN) ? "in" :
                         (direction == GPIO_DIR_OUT) ? "out" : "unknown";
 
     if (gpio_sysfs_get_edge(gpio, &edge) < 0)
-        edge_str = "?";
+        edge_str = "<error>";
     else
         edge_str = (edge == GPIO_EDGE_NONE) ? "none" :
                    (edge == GPIO_EDGE_RISING) ? "rising" :
@@ -900,13 +900,13 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     const char *chip_label_str;
 
     if (gpio_cdev_get_direction(gpio, &direction) < 0)
-        direction_str = "?";
+        direction_str = "<error>";
     else
         direction_str = (direction == GPIO_DIR_IN) ? "in" :
                         (direction == GPIO_DIR_OUT) ? "out" : "unknown";
 
     if (gpio_cdev_get_edge(gpio, &edge) < 0)
-        edge_str = "?";
+        edge_str = "<error>";
     else
         edge_str = (edge == GPIO_EDGE_NONE) ? "none" :
                    (edge == GPIO_EDGE_RISING) ? "rising" :
