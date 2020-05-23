@@ -237,9 +237,9 @@ int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios
 #define P_PATH_MAX  256
 
 /* Delay between checks for successful GPIO export (100ms) */
-#define GPIO_SYSFS_EXPORT_STAT_DELAY      100000
+#define GPIO_SYSFS_OPEN_DELAY      100000
 /* Number of retries to check for successful GPIO exports */
-#define GPIO_SYSFS_EXPORT_STAT_RETRIES    10
+#define GPIO_SYSFS_OPEN_RETRIES    10
 
 static int gpio_sysfs_close(gpio_t *gpio) {
     char buf[16];
@@ -632,7 +632,7 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
 
         /* Wait until GPIO directory appears */
         unsigned int retry_count;
-        for (retry_count = 0; retry_count < GPIO_SYSFS_EXPORT_STAT_RETRIES; retry_count++) {
+        for (retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
             int ret = stat(gpio_path, &stat_buf);
             if (ret == 0) {
                 exported = true;
@@ -641,11 +641,41 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
                 return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: stat 'gpio%u/' after export", line);
             }
 
-            usleep(GPIO_SYSFS_EXPORT_STAT_DELAY);
+            usleep(GPIO_SYSFS_OPEN_DELAY);
         }
 
-        if (retry_count == GPIO_SYSFS_EXPORT_STAT_RETRIES)
+        if (retry_count == GPIO_SYSFS_OPEN_RETRIES)
             return _gpio_error(gpio, GPIO_ERROR_OPEN, 0, "Opening GPIO: waiting for 'gpio%u/' timed out", line);
+
+        /* Write direction, looping in case of EACCES errors due to delayed
+         * udev permission rule application after export */
+        const char *dir = (direction == GPIO_DIR_OUT) ? "out\n" :
+                          (direction == GPIO_DIR_OUT_HIGH) ? "high\n" :
+                          (direction == GPIO_DIR_OUT_LOW) ? "low\n" : "in\n";
+
+        snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/direction", line);
+
+        for (retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
+            if ((fd = open(gpio_path, O_WRONLY)) >= 0) {
+                if (write(fd, dir, strlen(dir)) < 0) {
+                    int errsv = errno;
+                    close(fd);
+                    return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errsv, "Writing GPIO 'direction'");
+                }
+
+                if (close(fd) < 0)
+                    return _gpio_error(gpio, GPIO_ERROR_CONFIGURE, errno, "Closing GPIO 'direction'");
+
+                break;
+            } else if (errno != EACCES) {
+                return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: opening 'gpio%u/direction'", line);
+            }
+
+            usleep(GPIO_SYSFS_OPEN_DELAY);
+        }
+
+        if (retry_count == GPIO_SYSFS_OPEN_RETRIES)
+            return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening GPIO: opening 'gpio%u/direction'", line);
     }
 
     /* Open value */
@@ -659,9 +689,11 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
     gpio->u.sysfs.line_fd = fd;
     gpio->u.sysfs.exported = exported;
 
-    ret = gpio_sysfs_set_direction(gpio, direction);
-    if (ret < 0)
-        return ret;
+    if (!exported) {
+        ret = gpio_sysfs_set_direction(gpio, direction);
+        if (ret < 0)
+            return ret;
+    }
 
     return 0;
 }
