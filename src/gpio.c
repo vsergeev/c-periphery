@@ -298,7 +298,7 @@ static int gpio_sysfs_read(gpio_t *gpio, bool *value) {
 }
 
 static int gpio_sysfs_write(gpio_t *gpio, bool value) {
-    char value_str[][2] = {"0\n", "1\n"};
+    static const char *value_str[2] = {"0\n", "1\n"};
 
     /* Write fd */
     if (write(gpio->u.sysfs.line_fd, value_str[value], 2) < 0)
