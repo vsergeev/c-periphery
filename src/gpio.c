@@ -824,6 +824,10 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
             return ret;
     }
 
+    ret = gpio_sysfs_set_inverted(gpio, false);
+    if (ret < 0)
+        return ret;
+
     return 0;
 }
 
