@@ -10,10 +10,9 @@ Serial wrapper functions for Linux userspace termios `tty` devices.
 /* Primary Functions */
 serial_t *serial_new(void);
 int serial_open(serial_t *serial, const char *path, uint32_t baudrate);
-int serial_open_advanced(serial_t *serial, const char *path,
-                            uint32_t baudrate, unsigned int databits,
-                            serial_parity_t parity, unsigned int stopbits,
-                            bool xonxoff, bool rtscts);
+int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate,
+                         unsigned int databits, serial_parity_t parity,
+                         unsigned int stopbits, bool xonxoff, bool rtscts);
 int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms);
 int serial_write(serial_t *serial, const uint8_t *buf, size_t len);
 int serial_flush(serial_t *serial);
@@ -78,10 +77,9 @@ Returns 0 on success, or a negative [Serial error code](#return-value) on failur
 ------
 
 ``` c
-int serial_open_advanced(serial_t *serial, const char *path,
-                            uint32_t baudrate, unsigned int databits,
-                            serial_parity_t parity, unsigned int stopbits,
-                            bool xonxoff, bool rtscts);
+int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate,
+                         unsigned int databits, serial_parity_t parity,
+                         unsigned int stopbits, bool xonxoff, bool rtscts);
 ```
 Open the `tty` device at the specified path (e.g. "/dev/ttyUSB0"), with the specified baudrate, data bits, parity, stop bits, software flow control (xonxoff), and hardware flow control (rtscts) settings.
 
