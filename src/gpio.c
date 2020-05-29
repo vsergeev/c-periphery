@@ -4,6 +4,8 @@
  * License: MIT
  */
 
+#define _XOPEN_SOURCE   /* for POLLRDNORM */
+
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdarg.h>
