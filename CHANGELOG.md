@@ -1,3 +1,27 @@
+* v2.2.0 - 05/29/2020
+    * GPIO
+        * Add `gpio_poll_multiple()` function.
+        * Add getter for line consumer label.
+        * Add getters and setters for line bias, line drive, and inverted
+          properties.
+        * Add advanced open functions with additional properties for character
+          device GPIOs.
+        * Only unexport GPIO in `gpio_close()` if exported in
+          `gpio_open_sysfs()` for sysfs GPIOs.
+        * Add retry loop to direction write after export to accommodate delayed
+          udev permission rule application in `gpio_open_sysfs()` for sysfs
+          GPIOs.
+        * Improve wording and fix typos in documentation.
+    * Serial
+        * Add getters and setters for vmin and vtime termios settings.
+        * Add support for termios timeout with `serial_read()`.
+        * Improve wording in documentation.
+    * Build
+        * Add CMake build support.
+        * Add pkg-config pc file generation.
+    * Contributors
+        * Joris Offouga, @jorisoffouga - 952e1e9, 671e618
+
 * v2.1.0 - 01/07/2020
     * Add LED module.
     * Add PWM module.
