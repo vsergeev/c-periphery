@@ -9,7 +9,7 @@ if(NOT HAVE_LINUX_HEADERS)
 endif()
 
 # Library version
-set(VERSION "2.1.0")
+set(VERSION "2.2.0")
 set(SOVERSION ${VERSION})
 
 # Glob sources, headers, tests
