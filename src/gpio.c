@@ -4,6 +4,8 @@
  * License: MIT
  */
 
+#define _XOPEN_SOURCE
+
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdarg.h>
