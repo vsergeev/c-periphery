@@ -1,3 +1,10 @@
+* v2.2.1 - 05/31/2020
+    * GPIO
+        * Add feature test macro for POLLRDNORM flag to fix build with uClibc.
+        * Fix argument name in prototype for `gpio_set_bias()`.
+    * Contributors
+        * Joris Offouga, @jorisoffouga - cfc722e
+
 * v2.2.0 - 05/29/2020
     * GPIO
         * Add `gpio_poll_multiple()` function.
