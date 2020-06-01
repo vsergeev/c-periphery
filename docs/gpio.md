@@ -36,7 +36,7 @@ int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 /* Setters */
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
-int gpio_set_bias(gpio_t *gpio, gpio_bias_t edge);
+int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias);
 int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
 int gpio_set_inverted(gpio_t *gpio, bool inverted);
 
@@ -264,7 +264,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ```c
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
-int gpio_set_bias(gpio_t *gpio, gpio_bias_t edge);
+int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias);
 int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
 int gpio_set_inverted(gpio_t *gpio, bool inverted);
 ```
