@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(periphery C)
 
+option(BUILD_TESTS "Build periphery compile tests" ON)
+
 # Check for Linux kernel headers
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES(linux/gpio.h HAVE_LINUX_HEADERS)
@@ -38,7 +40,6 @@ configure_file(${CMAKE_SOURCE_DIR}/src/version.h.in ${CMAKE_SOURCE_DIR}/src/vers
 # Glob sources, headers, tests
 file(GLOB_RECURSE periphery_SOURCES src/*.c)
 file(GLOB_RECURSE periphery_HEADERS src/*.h)
-file(GLOB_RECURSE periphery_TESTS tests/*.c)
 
 # Define C flags and include directories
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter -fPIC")
@@ -58,11 +59,7 @@ install(TARGETS periphery DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${periphery_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 install(FILES ${CMAKE_BINARY_DIR}/libperiphery.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-# Declare tests targets
-foreach(TEST_SOURCE ${periphery_TESTS})
-    get_filename_component(TEST_PROGRAM ${TEST_SOURCE} NAME_WE)
-    add_executable(${TEST_PROGRAM} ${TEST_SOURCE})
-    target_link_libraries(${TEST_PROGRAM} periphery pthread)
-    set(TEST_PROGRAMS ${TEST_PROGRAMS} ${TEST_PROGRAM})
-endforeach()
-add_custom_target(tests DEPENDS periphery ${TEST_PROGRAMS})
+# Build tests if enabled
+#if(BUILD_TESTS)
+    add_subdirectory(tests)
+#endif()
