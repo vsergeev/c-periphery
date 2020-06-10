@@ -9,13 +9,11 @@ if(NOT HAVE_LINUX_HEADERS)
 endif()
 
 # Library version
-set(VERSION "2.2.1")
+set(PERIPHERY_VERSION_MAJOR "2")
+set(PERIPHERY_VERSION_MINOR "2")
+set(PERIPHERY_VERSION_PATCH "1")
+set(VERSION "${PERIPHERY_VERSION_MAJOR}.${PERIPHERY_VERSION_MINOR}.${PERIPHERY_VERSION_PATCH}")
 set(SOVERSION ${VERSION})
-
-# Glob sources, headers, tests
-file(GLOB_RECURSE periphery_SOURCES src/*.c)
-file(GLOB_RECURSE periphery_HEADERS src/*.h)
-file(GLOB_RECURSE periphery_TESTS tests/*.c)
 
 # Expose git commit id into COMMIT_ID variable
 execute_process(
@@ -25,8 +23,22 @@ execute_process(
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+# Set Periphery Version variable
+if(COMMIT_ID)
+    set(PERIPHERY_VERSION_COMMIT "${COMMIT_ID}")
+else()
+    set(PERIPHERY_VERSION_COMMIT "unknown")
+endif()
+
+# generate version file
+configure_file(${CMAKE_SOURCE_DIR}/src/version.h.in ${CMAKE_SOURCE_DIR}/src/version.h)
+
+# Glob sources, headers, tests
+file(GLOB_RECURSE periphery_SOURCES src/*.c)
+file(GLOB_RECURSE periphery_HEADERS src/*.h)
+file(GLOB_RECURSE periphery_TESTS tests/*.c)
+
 # Define C flags and include directories
-add_definitions(-DPERIPHERY_VERSION_COMMIT="${COMMIT_ID}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter -fPIC")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
