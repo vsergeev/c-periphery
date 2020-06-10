@@ -2,6 +2,8 @@
 
 GPIO wrapper functions for Linux userspace character device `gpio-cdev` and sysfs GPIOs.
 
+Character device GPIOs were introduced in Linux kernel version 4.8. If the toolchain used to compiled c-periphery contains Linux kernel headers older than 4.8 (i.e. `linux/gpio.h` is missing), then only legacy sysfs GPIOs will be supported.
+
 ### SYNOPSIS
 
 ``` c
