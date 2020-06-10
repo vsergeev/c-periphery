@@ -17,6 +17,8 @@ extern "C" {
 
 #cmakedefine PERIPHERY_VERSION_COMMIT "@PERIPHERY_VERSION_COMMIT@"
 
+#cmakedefine PERIPHERY_GPIO_CDEV_SUPPORT (@PERIPHERY_GPIO_CDEV_SUPPORT@)
+
 typedef struct periphery_version {
     unsigned int major;
     unsigned int minor;

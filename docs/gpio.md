@@ -55,6 +55,26 @@ int gpio_errno(gpio_t *gpio);
 const char *gpio_errmsg(gpio_t *gpio);
 ```
 
+The `gpio-cdev` interface was introduced in the Linux kernel in version 4.8. If the toolchain used to compiled contains kernel headers <4.8 (linux/gpio.h is missing), then the GPIO functions which support the sysfs interface will be available. The following functions are not available with the sysfs only implementation:
+
+``` c
+/* Primary Functions */
+int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction);
+int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction);
+int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config);
+int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config);
+
+/* Read Event (for character device GPIOs) */
+int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
+
+/* Miscellaneous Properties */
+int gpio_name(gpio_t *gpio, char *str, size_t len);
+int gpio_label(gpio_t *gpio, char *str, size_t len);
+int gpio_chip_fd(gpio_t *gpio);
+int gpio_chip_name(gpio_t *gpio, char *str, size_t len);
+int gpio_chip_label(gpio_t *gpio, char *str, size_t len);
+```
+
 ### ENUMERATIONS
 
 * `gpio_direction_t`

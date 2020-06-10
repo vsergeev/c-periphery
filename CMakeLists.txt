@@ -4,8 +4,10 @@ project(periphery C)
 # Check for Linux kernel headers
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES(linux/gpio.h HAVE_LINUX_HEADERS)
-if(NOT HAVE_LINUX_HEADERS)
-    message(FATAL_ERROR "c-periphery needs Linux kernel headers")
+if(HAVE_LINUX_HEADERS)
+    set(PERIPHERY_GPIO_CDEV_SUPPORT 1)
+else()
+    message(WARNING "c-periphery will only support legacy Linux kernel GPIO interface. "linux/gpio.h" header file not detect")
 endif()
 
 # Library version

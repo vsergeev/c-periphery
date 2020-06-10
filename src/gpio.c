@@ -19,10 +19,14 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+/* PERIPHERY_GPIO_CDEV_SUPPORT define from version.h via gpio.h */
+#include "gpio.h"
+
+#ifdef PERIPHERY_GPIO_CDEV_SUPPORT
 #include <sys/ioctl.h>
 #include <linux/gpio.h>
+#endif
 
-#include "gpio.h"
 
 /*********************************************************************************/
 /* Operations table and handle structure */
@@ -836,7 +840,7 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
 /*********************************************************************************/
 /* cdev implementation */
 /*********************************************************************************/
-
+#ifdef PERIPHERY_GPIO_CDEV_SUPPORT
 static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge, gpio_bias_t bias, gpio_drive_t drive, bool inverted) {
     uint32_t flags = 0;
 
@@ -1362,3 +1366,4 @@ int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direct
 
     return gpio_open_name_advanced(gpio, path, name, &config);
 }
+#endif /* PERIPHERY_GPIO_CDEV_SUPPORT */

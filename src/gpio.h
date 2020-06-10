@@ -15,6 +15,9 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+/* Needed for PERIPHERY_GPIO_CDEV_SUPPORT */
+#include "version.h"
+
 enum gpio_error_code {
     GPIO_ERROR_ARG                  = -1,   /* Invalid arguments */
     GPIO_ERROR_OPEN                 = -2,   /* Opening GPIO */
@@ -68,10 +71,14 @@ typedef struct gpio_handle gpio_t;
 
 /* Primary Functions */
 gpio_t *gpio_new(void);
+
+#ifdef PERIPHERY_GPIO_CDEV_SUPPORT
 int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction);
 int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction);
 int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config);
 int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config);
+#endif /* PERIPHERY_GPIO_CDEV_SUPPORT */
+
 int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction);
 int gpio_read(gpio_t *gpio, bool *value);
 int gpio_write(gpio_t *gpio, bool value);
@@ -79,8 +86,10 @@ int gpio_poll(gpio_t *gpio, int timeout_ms);
 int gpio_close(gpio_t *gpio);
 void gpio_free(gpio_t *gpio);
 
+#ifdef PERIPHERY_GPIO_CDEV_SUPPORT
 /* Read Event (for character device GPIOs) */
 int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
+#endif /* PERIPHERY_GPIO_CDEV_SUPPORT */
 
 /* Poll Multiple */
 int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios_ready);
@@ -102,11 +111,15 @@ int gpio_set_inverted(gpio_t *gpio, bool inverted);
 /* Miscellaneous Properties */
 unsigned int gpio_line(gpio_t *gpio);
 int gpio_fd(gpio_t *gpio);
+
+#ifdef PERIPHERY_GPIO_CDEV_SUPPORT
 int gpio_name(gpio_t *gpio, char *str, size_t len);
 int gpio_label(gpio_t *gpio, char *str, size_t len);
 int gpio_chip_fd(gpio_t *gpio);
 int gpio_chip_name(gpio_t *gpio, char *str, size_t len);
 int gpio_chip_label(gpio_t *gpio, char *str, size_t len);
+#endif /* PERIPHERY_GPIO_CDEV_SUPPORT */
+
 int gpio_tostring(gpio_t *gpio, char *str, size_t len);
 
 /* Error Handling */
