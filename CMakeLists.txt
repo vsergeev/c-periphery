@@ -17,7 +17,7 @@ set(SOVERSION ${VERSION})
 
 # Expose git commit id into COMMIT_ID variable
 execute_process(
-    COMMAND git describe --abbrev --always --tags --dirty
+    COMMAND git --git-dir="${CMAKE_CURRENT_SOURCE_DIR}" describe --abbrev --always --tags --dirty
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     OUTPUT_VARIABLE COMMIT_ID
     ERROR_QUIET
