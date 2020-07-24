@@ -1,3 +1,20 @@
+* v2.2.2 - 07/24/2020
+    * GPIO
+        * Add conditional compilation of character device GPIO support to allow
+          build under older Linux kernel headers.
+        * Increase feature test macro version to fix missing definition
+          warnings.
+    * Build
+        * Fix directory paths for pkg-config pc file generation and
+          installation under CMake.
+        * Fix COMMIT_ID identification when building within a parent git
+          repository under CMake.
+        * Add CMake build option for tests.
+    * Contributors
+        * oficsu, @oficsu - 80bc63d
+        * Ryan Barnett, @rjbarnet - ea1e0da, 05262e6, 50fcd0a
+        * Fabrice Fontaine, @ffontaine - caadb46
+
 * v2.2.1 - 05/31/2020
     * GPIO
         * Add feature test macro for POLLRDNORM flag to fix build with uClibc.
