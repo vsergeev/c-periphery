@@ -20,7 +20,10 @@
 #include <errno.h>
 
 #include <sys/ioctl.h>
+
+#if PERIPHERY_GPIO_CDEV_SUPPORT
 #include <linux/gpio.h>
+#endif
 
 #include "gpio.h"
 
@@ -837,6 +840,8 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
 /* cdev implementation */
 /*********************************************************************************/
 
+#if PERIPHERY_GPIO_CDEV_SUPPORT
+
 static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge, gpio_bias_t bias, gpio_drive_t drive, bool inverted) {
     uint32_t flags = 0;
 
@@ -1362,3 +1367,19 @@ int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direct
 
     return gpio_open_name_advanced(gpio, path, name, &config);
 }
+
+#else /* PERIPHERY_GPIO_CDEV_SUPPORT */
+
+int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
+}
+
+int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
+}
+
+int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction) {
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
+}
+
+#endif
