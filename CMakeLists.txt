@@ -4,8 +4,8 @@ project(periphery C)
 option(BUILD_TESTS "Build test programs" ON)
 
 # Check for Linux kernel header files for character device GPIO support
-include(CheckIncludeFiles)
-CHECK_INCLUDE_FILES(linux/gpio.h HAVE_CDEV_GPIO_HEADERS)
+include(CheckSymbolExists)
+CHECK_SYMBOL_EXISTS(GPIOEVENT_EVENT_RISING_EDGE linux/gpio.h HAVE_CDEV_GPIO_HEADERS)
 if(NOT HAVE_CDEV_GPIO_HEADERS)
 message(WARNING "Linux kernel header files not found for character device GPIO support. c-periphery will be built with legacy sysfs GPIO support only.")
 endif()
