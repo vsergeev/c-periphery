@@ -1,3 +1,15 @@
+* v2.2.3 - 09/03/2020
+    * GPIO
+        * Disable character device GPIO support when building with older Linux
+          kernel headers missing line event support in the gpio-cdev ABI.
+    * SPI
+        * Fix formatted bits per word truncation in `spi_tostring()`.
+    * Build
+        * Add test for character device GPIO support in Linux kernel headers to
+          Makefile.
+    * Contributors
+        * Fabrice Fontaine, @ffontaine - 5b81b89
+
 * v2.2.2 - 07/24/2020
     * GPIO
         * Add conditional compilation of character device GPIO support to allow
