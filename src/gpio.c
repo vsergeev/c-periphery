@@ -23,6 +23,12 @@
 
 #if PERIPHERY_GPIO_CDEV_SUPPORT
 #include <linux/gpio.h>
+
+/* Disable cdev support when building with older kernel headers that don't yet
+ * support line events in the gpio-cdev abi */
+#ifndef GPIO_GET_LINEEVENT_IOCTL
+#undef PERIPHERY_GPIO_CDEV_SUPPORT
+#endif
 #endif
 
 #include "gpio.h"
