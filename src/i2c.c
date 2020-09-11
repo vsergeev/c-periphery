@@ -77,11 +77,13 @@ int i2c_open(i2c_t *i2c, const char *path) {
     if (ioctl(i2c->fd, I2C_FUNCS, &supported_funcs) < 0) {
         int errsv = errno;
         close(i2c->fd);
+        i2c->fd = -1;
         return _i2c_error(i2c, I2C_ERROR_QUERY, errsv, "Querying I2C functions");
     }
 
     if (!(supported_funcs & I2C_FUNC_I2C)) {
         close(i2c->fd);
+        i2c->fd = -1;
         return _i2c_error(i2c, I2C_ERROR_NOT_SUPPORTED, 0, "I2C not supported on %s", path);
     }
 
