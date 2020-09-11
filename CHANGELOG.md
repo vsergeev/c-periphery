@@ -1,3 +1,7 @@
+* v2.2.4 - 09/11/2020
+    * Fix future spurious close caused by uncleared handle state after an error
+      during open in GPIO, I2C, SPI, Serial, and MMIO modules.
+
 * v2.2.3 - 09/03/2020
     * GPIO
         * Disable character device GPIO support when building with older Linux
