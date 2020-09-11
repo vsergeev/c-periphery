@@ -87,6 +87,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
     if (ioctl(spi->fd, SPI_IOC_WR_MODE, &data8) < 0) {
         int errsv = errno;
         close(spi->fd);
+        spi->fd = -1;
         return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI mode");
     }
 
@@ -94,6 +95,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
     if (ioctl(spi->fd, SPI_IOC_WR_MAX_SPEED_HZ, &max_speed) < 0) {
         int errsv = errno;
         close(spi->fd);
+        spi->fd = -1;
         return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI max speed");
     }
 
@@ -101,6 +103,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
     if (ioctl(spi->fd, SPI_IOC_WR_BITS_PER_WORD, &bits_per_word) < 0) {
         int errsv = errno;
         close(spi->fd);
+        spi->fd = -1;
         return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI bits per word");
     }
 
