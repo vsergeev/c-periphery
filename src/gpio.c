@@ -998,16 +998,18 @@ static int gpio_cdev_close(gpio_t *gpio) {
     if (gpio->u.cdev.line_fd >= 0) {
         if (close(gpio->u.cdev.line_fd) < 0)
             return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO line");
+
+        gpio->u.cdev.line_fd = -1;
     }
 
     /* Close chip fd */
     if (gpio->u.cdev.chip_fd >= 0) {
         if (close(gpio->u.cdev.chip_fd) < 0)
             return _gpio_error(gpio, GPIO_ERROR_CLOSE, errno, "Closing GPIO chip");
+
+        gpio->u.cdev.chip_fd = -1;
     }
 
-    gpio->u.cdev.line_fd = -1;
-    gpio->u.cdev.chip_fd = -1;
     gpio->u.cdev.edge = GPIO_EDGE_NONE;
     gpio->u.cdev.direction = GPIO_DIR_IN;
 
