@@ -80,6 +80,7 @@ int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
     if (close(fd) < 0) {
         int errsv = errno;
         munmap(mmio->ptr, mmio->aligned_size);
+        mmio->ptr = 0;
         return _mmio_error(mmio, MMIO_ERROR_OPEN, errsv, "Closing /dev/mem");
     }
 
