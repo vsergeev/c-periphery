@@ -1298,7 +1298,8 @@ int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const 
     /* Open GPIO line */
     ret = _gpio_cdev_reopen(gpio, config->direction, config->edge, config->bias, config->drive, config->inverted);
     if (ret < 0) {
-        close(fd);
+        close(gpio->u.cdev.chip_fd);
+        gpio->u.cdev.chip_fd = -1;
         return ret;
     }
 
