@@ -955,6 +955,9 @@ static int gpio_cdev_read(gpio_t *gpio, bool *value) {
 static int gpio_cdev_write(gpio_t *gpio, bool value) {
     struct gpiohandle_data data = {0};
 
+    if (gpio->u.cdev.direction != GPIO_DIR_OUT)
+        return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: cannot write to input GPIO");
+
     data.values[0] = value;
 
     if (ioctl(gpio->u.cdev.line_fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data) < 0)
@@ -966,7 +969,9 @@ static int gpio_cdev_write(gpio_t *gpio, bool value) {
 static int gpio_cdev_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
     struct gpioevent_data event_data = {0};
 
-    if (gpio->u.cdev.edge == GPIO_EDGE_NONE)
+    if (gpio->u.cdev.direction != GPIO_DIR_IN)
+        return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: cannot read event of output GPIO");
+    else if (gpio->u.cdev.edge == GPIO_EDGE_NONE)
         return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: GPIO edge not set");
 
     if (read(gpio->u.cdev.line_fd, &event_data, sizeof(event_data)) < (ssize_t)sizeof(event_data))
@@ -984,6 +989,9 @@ static int gpio_cdev_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *times
 static int gpio_cdev_poll(gpio_t *gpio, int timeout_ms) {
     struct pollfd fds[1];
     int ret;
+
+    if (gpio->u.cdev.direction != GPIO_DIR_IN)
+        return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: cannot poll output GPIO");
 
     fds[0].fd = gpio->u.cdev.line_fd;
     fds[0].events = POLLIN | POLLPRI | POLLERR;
