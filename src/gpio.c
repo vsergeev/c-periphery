@@ -626,6 +626,9 @@ static int gpio_sysfs_chip_name(gpio_t *gpio, char *str, size_t len) {
     char gpio_path[P_PATH_MAX];
     char gpiochip_path[P_PATH_MAX];
 
+    if (!len)
+        return 0;
+
     /* Form path to device */
     snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u/device", gpio->u.sysfs.line);
 
@@ -641,7 +644,7 @@ static int gpio_sysfs_chip_name(gpio_t *gpio, char *str, size_t len) {
     if (!sep)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, 0, "Invalid GPIO chip symlink");
 
-    strncpy(str, sep + 1, len);
+    strncpy(str, sep + 1, len - 1);
     str[len - 1] = '\0';
 
     return 0;
@@ -651,6 +654,9 @@ static int gpio_sysfs_chip_label(gpio_t *gpio, char *str, size_t len) {
     char gpio_path[P_PATH_MAX];
     char chip_name[32];
     int fd, ret;
+
+    if (!len)
+        return 0;
 
     if ((ret = gpio_sysfs_chip_name(gpio, chip_name, sizeof(chip_name))) < 0)
         return ret;
