@@ -1126,12 +1126,15 @@ static int gpio_cdev_fd(gpio_t *gpio) {
 static int gpio_cdev_name(gpio_t *gpio, char *str, size_t len) {
     struct gpioline_info line_info = {0};
 
+    if (!len)
+        return 0;
+
     line_info.line_offset = gpio->u.cdev.line;
 
     if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEINFO_IOCTL, &line_info) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Querying GPIO line info for line %u", gpio->u.cdev.line);
 
-    strncpy(str, line_info.name, len);
+    strncpy(str, line_info.name, len - 1);
     str[len - 1] = '\0';
 
     return 0;
@@ -1140,12 +1143,15 @@ static int gpio_cdev_name(gpio_t *gpio, char *str, size_t len) {
 static int gpio_cdev_label(gpio_t *gpio, char *str, size_t len) {
     struct gpioline_info line_info = {0};
 
+    if (!len)
+        return 0;
+
     line_info.line_offset = gpio->u.cdev.line;
 
     if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEINFO_IOCTL, &line_info) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Querying GPIO line info for line %u", gpio->u.cdev.line);
 
-    strncpy(str, line_info.consumer, len);
+    strncpy(str, line_info.consumer, len - 1);
     str[len - 1] = '\0';
 
     return 0;
@@ -1158,10 +1164,13 @@ static int gpio_cdev_chip_fd(gpio_t *gpio) {
 static int gpio_cdev_chip_name(gpio_t *gpio, char *str, size_t len) {
     struct gpiochip_info chip_info = {0};
 
+    if (!len)
+        return 0;
+
     if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_CHIPINFO_IOCTL, &chip_info) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Querying GPIO chip info");
 
-    strncpy(str, chip_info.name, len);
+    strncpy(str, chip_info.name, len - 1);
     str[len - 1] = '\0';
 
     return 0;
@@ -1170,10 +1179,13 @@ static int gpio_cdev_chip_name(gpio_t *gpio, char *str, size_t len) {
 static int gpio_cdev_chip_label(gpio_t *gpio, char *str, size_t len) {
     struct gpiochip_info chip_info = {0};
 
+    if (!len)
+        return 0;
+
     if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_CHIPINFO_IOCTL, &chip_info) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Querying GPIO chip info");
 
-    strncpy(str, chip_info.label, len);
+    strncpy(str, chip_info.label, len - 1);
     str[len - 1] = '\0';
 
     return 0;
@@ -1313,7 +1325,7 @@ int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const 
     gpio->u.cdev.line = line;
     gpio->u.cdev.line_fd = -1;
     gpio->u.cdev.chip_fd = fd;
-    strncpy(gpio->u.cdev.label, config->label ? config->label : "periphery", sizeof(gpio->u.cdev.label));
+    strncpy(gpio->u.cdev.label, config->label ? config->label : "periphery", sizeof(gpio->u.cdev.label) - 1);
     gpio->u.cdev.label[sizeof(gpio->u.cdev.label) - 1] = '\0';
 
     /* Open GPIO line */
