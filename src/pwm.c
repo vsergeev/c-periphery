@@ -419,12 +419,12 @@ int pwm_tostring(pwm_t *pwm, char *str, size_t len) {
     const char *enabled_str;
 
     if (pwm_get_period(pwm, &period) < 0)
-        strncpy(period_str, "<error>", sizeof(period_str));
+        strcpy(period_str, "<error>");
     else
         snprintf(period_str, sizeof(period_str), "%f", period);
 
     if (pwm_get_duty_cycle(pwm, &duty_cycle) < 0)
-        strncpy(duty_cycle_str, "<error>", sizeof(duty_cycle_str));
+        strcpy(duty_cycle_str, "<error>");
     else
         snprintf(duty_cycle_str, sizeof(duty_cycle_str), "%f", duty_cycle);
 
