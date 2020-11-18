@@ -278,32 +278,32 @@ int spi_tostring(spi_t *spi, char *str, size_t len) {
     uint8_t bits_per_word;
     char bits_per_word_str[4];
     spi_bit_order_t bit_order;
-    char bit_order_str[16];
+    const char *bit_order_str;
     uint8_t extra_flags;
     char extra_flags_str[5];
 
     if (spi_get_mode(spi, &mode) < 0)
-        strncpy(mode_str, "?", sizeof(mode_str));
+        strcpy(mode_str, "?");
     else
         snprintf(mode_str, sizeof(mode_str), "%u", mode);
 
     if (spi_get_max_speed(spi, &max_speed) < 0)
-        strncpy(max_speed_str, "?", sizeof(max_speed_str));
+        strcpy(max_speed_str, "?");
     else
         snprintf(max_speed_str, sizeof(max_speed_str), "%u", max_speed);
 
     if (spi_get_bit_order(spi, &bit_order) < 0)
-        strncpy(bit_order_str, "?", sizeof(bit_order_str));
+        bit_order_str = "?";
     else
-        strncpy(bit_order_str, (bit_order == LSB_FIRST) ? "LSB_FIRST" : "MSB_FIRST", sizeof(bit_order_str));
+        bit_order_str = (bit_order == LSB_FIRST) ? "LSB_FIRST" : "MSB_FIRST";
 
     if (spi_get_bits_per_word(spi, &bits_per_word) < 0)
-        strncpy(bits_per_word_str, "?", sizeof(bits_per_word_str));
+        strcpy(bits_per_word_str, "?");
     else
         snprintf(bits_per_word_str, sizeof(bits_per_word_str), "%u", bits_per_word);
 
     if (spi_get_extra_flags(spi, &extra_flags) < 0)
-        strncpy(extra_flags_str, "?", sizeof(extra_flags_str));
+        strcpy(extra_flags_str, "?");
     else
         snprintf(extra_flags_str, sizeof(extra_flags_str), "0x%02x", extra_flags);
 
