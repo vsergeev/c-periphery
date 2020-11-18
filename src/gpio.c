@@ -893,7 +893,8 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
 
             request.lineoffsets[0] = gpio->u.cdev.line;
             request.flags = flags | GPIOHANDLE_REQUEST_INPUT;
-            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label));
+            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label) - 1);
+            request.consumer_label[sizeof(request.consumer_label) - 1] = '\0';
             request.lines = 1;
 
             if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEHANDLE_IOCTL, &request) < 0)
@@ -908,7 +909,8 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
             request.eventflags = (edge == GPIO_EDGE_RISING) ? GPIOEVENT_REQUEST_RISING_EDGE :
                                  (edge == GPIO_EDGE_FALLING) ? GPIOEVENT_REQUEST_FALLING_EDGE :
                                                                GPIOEVENT_REQUEST_BOTH_EDGES;
-            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label));
+            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label) - 1);
+            request.consumer_label[sizeof(request.consumer_label) - 1] = '\0';
 
             if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEEVENT_IOCTL, &request) < 0)
                 return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening input event line handle");
@@ -923,7 +925,8 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
         request.lineoffsets[0] = gpio->u.cdev.line;
         request.flags = flags | GPIOHANDLE_REQUEST_OUTPUT;
         request.default_values[0] = initial_value;
-        strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label));
+        strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label) - 1);
+        request.consumer_label[sizeof(request.consumer_label) - 1] = '\0';
         request.lines = 1;
 
         if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEHANDLE_IOCTL, &request) < 0)
