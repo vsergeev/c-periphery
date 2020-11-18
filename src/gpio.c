@@ -604,12 +604,16 @@ static int gpio_sysfs_fd(gpio_t *gpio) {
 }
 
 static int gpio_sysfs_name(gpio_t *gpio, char *str, size_t len) {
-    strncpy(str, "", len);
+    if (len)
+        str[0] = '\0';
+
     return 0;
 }
 
 static int gpio_sysfs_label(gpio_t *gpio, char *str, size_t len) {
-    strncpy(str, "", len);
+    if (len)
+        str[0] = '\0';
+
     return 0;
 }
 
