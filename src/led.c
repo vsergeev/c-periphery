@@ -184,7 +184,12 @@ int led_set_brightness(led_t *led, unsigned int brightness) {
 }
 
 int led_name(led_t *led, char *str, size_t len) {
-    strncpy(str, led->name, len);
+    if (!len)
+        return 0;
+
+    strncpy(str, led->name, len - 1);
+    str[len - 1] = '\0';
+
     return 0;
 }
 
