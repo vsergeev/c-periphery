@@ -194,12 +194,12 @@ int led_tostring(led_t *led, char *str, size_t len) {
     char max_brightness_str[16];
 
     if (led_get_brightness(led, &brightness) < 0)
-        strncpy(brightness_str, "<error>", sizeof(brightness_str));
+        strcpy(brightness_str, "<error>");
     else
         snprintf(brightness_str, sizeof(brightness_str), "%u", brightness);
 
     if (led_get_max_brightness(led, &max_brightness) < 0)
-        strncpy(max_brightness_str, "<error>", sizeof(max_brightness_str));
+        strcpy(max_brightness_str, "<error>");
     else
         snprintf(max_brightness_str, sizeof(max_brightness_str), "%u", max_brightness);
 
