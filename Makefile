@@ -13,7 +13,9 @@ OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 GPIO_CDEV_SUPPORT := $(shell ! echo "\#include <linux/gpio.h>" | $(CC) -E - >/dev/null 2>&1; echo $$?)
 COMMIT_ID := $(shell git describe --abbrev --always --tags --dirty 2>/dev/null || echo "")
 
+OPT ?= -O3
 CFLAGS += -std=gnu99 -pedantic
+CFLAGS += $(OPT)
 CFLAGS += -Wall -Wextra -Wno-unused-parameter $(DEBUG) -fPIC
 CFLAGS += -DPERIPHERY_VERSION_COMMIT=\"$(COMMIT_ID)\" -DPERIPHERY_GPIO_CDEV_SUPPORT=$(GPIO_CDEV_SUPPORT)
 LDFLAGS +=
