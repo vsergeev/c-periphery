@@ -67,7 +67,8 @@ int led_open(led_t *led, const char *name) {
 
     close(fd);
 
-    strncpy(led->name, name, sizeof(led->name));
+    strncpy(led->name, name, sizeof(led->name) - 1);
+    led->name[sizeof(led->name) - 1] = '\0';
 
     if ((ret = led_get_max_brightness(led, &led->max_brightness)) < 0)
         return ret;
