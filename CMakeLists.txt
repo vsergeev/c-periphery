@@ -3,6 +3,10 @@ project(periphery C)
 
 option(BUILD_TESTS "Build test programs" ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
 # Check for Linux kernel header files for character device GPIO support
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES(linux/gpio.h HAVE_CDEV_GPIO_HEADERS)
@@ -30,7 +34,9 @@ execute_process(
 
 # Define C flags and include directories
 add_definitions(-DPERIPHERY_VERSION_COMMIT="${COMMIT_ID}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter -fPIC")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-unused-parameter -Wno-stringop-truncation -fPIC")
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Declare library target
