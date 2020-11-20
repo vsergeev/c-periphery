@@ -1,3 +1,15 @@
+* v2.2.5 - 11/19/2020
+    * GPIO
+        * Add direction checks for improved error reporting to `gpio_write()`,
+          `gpio_read_event()`, and `gpio_poll()` for character device GPIOs.
+        * Improve string handling in `gpio_open()` and in getters for
+          sysfs and character device GPIOs.
+    * LED
+        * Improve string handling in `led_open()` and `led_name()`.
+    * Build
+        * Add default optimization to CFLAGS in Makefile.
+        * Add debug and release CFLAGS to CMakeLists.txt.
+
 * v2.2.4 - 09/11/2020
     * Fix future spurious close caused by uncleared handle state after an error
       during open in GPIO, I2C, SPI, Serial, and MMIO modules.
