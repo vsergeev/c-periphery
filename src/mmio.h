@@ -26,6 +26,7 @@ typedef struct mmio_handle mmio_t;
 /* Primary Functions */
 mmio_t *mmio_new(void);
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size);
+int mmio_open_advanced(mmio_t *mmio, uintptr_t base, size_t size, const char *path);
 void *mmio_ptr(mmio_t *mmio);
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value);
 int mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value);

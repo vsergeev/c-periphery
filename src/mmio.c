@@ -57,6 +57,10 @@ void mmio_free(mmio_t *mmio) {
 }
 
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
+    return mmio_open_advanced(mmio, base, size, "/dev/mem");
+}
+
+int mmio_open_advanced(mmio_t *mmio, uintptr_t base, size_t size, const char *path) {
     int fd;
 
     memset(mmio, 0, sizeof(mmio_t));
@@ -66,8 +70,8 @@ int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
     mmio->aligned_size = mmio->size + (mmio->base - mmio->aligned_base);
 
     /* Open memory */
-    if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0)
-        return _mmio_error(mmio, MMIO_ERROR_OPEN, errno, "Opening /dev/mem");
+    if ((fd = open(path, O_RDWR | O_SYNC)) < 0)
+        return _mmio_error(mmio, MMIO_ERROR_OPEN, errno, "Opening %s", path);
 
     /* Map memory */
     if ((mmio->ptr = mmap(0, mmio->aligned_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mmio->aligned_base)) == MAP_FAILED) {
@@ -81,7 +85,7 @@ int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
         int errsv = errno;
         munmap(mmio->ptr, mmio->aligned_size);
         mmio->ptr = 0;
-        return _mmio_error(mmio, MMIO_ERROR_OPEN, errsv, "Closing /dev/mem");
+        return _mmio_error(mmio, MMIO_ERROR_OPEN, errsv, "Closing %s", path);
     }
 
     return 0;

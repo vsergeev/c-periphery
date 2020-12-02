@@ -10,6 +10,7 @@ MMIO wrapper functions for the Linux userspace `/dev/mem` device.
 /* Primary Functions */
 mmio_t *mmio_new(void);
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size);
+int mmio_open_advanced(mmio_t *mmio, uintptr_t base, size_t size, const char *path);
 void *mmio_ptr(mmio_t *mmio);
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value);
 int mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value);
@@ -46,7 +47,18 @@ Returns a valid handle on success, or NULL on failure.
 ``` c
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size);
 ```
-Map the region of physical memory at the specified base address with the specified size.
+Map the region of physical memory specified by the `base` physical address and `size` size in bytes, using the default `/dev/mem` memory character device.
+
+`mmio` should be a valid pointer to an allocated MMIO handle structure. Neither `base` nor `size` need be aligned to a page boundary.
+
+Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
+
+------
+
+``` c
+int mmio_open_advanced(mmio_t *mmio, uintptr_t base, size_t size, const char *path);
+```
+Map the region of physical memory specified by the `base` physical address and `size` size in bytes, using the specified memory character device. This open function can be used with sandboxed memory character devices, e.g. `/dev/gpiomem`.
 
 `mmio` should be a valid pointer to an allocated MMIO handle structure. Neither `base` nor `size` need be aligned to a page boundary.
 
@@ -71,7 +83,7 @@ int mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len);
 ```
 Read 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, from mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
 
@@ -85,7 +97,7 @@ int mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len);
 ```
 Write 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, to mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
 
@@ -96,7 +108,7 @@ int mmio_close(mmio_t *mmio);
 ```
 Unmap mapped physical memory.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
 
@@ -114,7 +126,7 @@ uintptr_t mmio_base(mmio_t *mmio);
 ```
 Return the base address the MMIO handle was opened with.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 This function is a simple accessor to the MMIO handle structure and always succeeds.
 
@@ -125,7 +137,7 @@ size_t mmio_size(mmio_t *mmio);
 ```
 Return the size the MMIO handle was opened with.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 This function is a simple accessor to the MMIO handle structure and always succeeds.
 
@@ -136,7 +148,7 @@ int mmio_tostring(mmio_t *mmio, char *str, size_t len);
 ```
 Return a string representation of the MMIO handle.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 This function behaves and returns like `snprintf()`.
 
@@ -147,7 +159,7 @@ int mmio_errno(mmio_t *mmio);
 ```
 Return the libc errno of the last failure that occurred.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 ------
 
@@ -156,7 +168,7 @@ const char *mmio_errmsg(mmio_t *mmio);
 ```
 Return a human readable error message of the last failure that occurred.
 
-`mmio` should be a valid pointer to an MMIO handle opened with `mmio_open()`.
+`mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
 ### RETURN VALUE
 
