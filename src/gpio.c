@@ -362,6 +362,9 @@ static int gpio_sysfs_write(gpio_t *gpio, bool value) {
 }
 
 static int gpio_sysfs_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
+    /* Avoid warning: unused parameter */
+    (void)edge;
+    (void)timestamp;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support read event");
 }
 
@@ -525,18 +528,26 @@ static int gpio_sysfs_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
 }
 
 static int gpio_sysfs_set_bias(gpio_t *gpio, gpio_bias_t bias) {
+    /* Avoid warning: unused parameter */
+    (void)bias;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line bias attribute");
 }
 
 static int gpio_sysfs_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
+    /* Avoid warning: unused parameter */
+    (void)bias;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line bias attribute");
 }
 
 static int gpio_sysfs_set_drive(gpio_t *gpio, gpio_drive_t drive) {
+    /* Avoid warning: unused parameter */
+    (void)drive;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line drive attribute");
 }
 
 static int gpio_sysfs_get_drive(gpio_t *gpio, gpio_drive_t *drive) {
+    /* Avoid warning: unused parameter */
+    (void)drive;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line drive attribute");
 }
 
@@ -604,6 +615,8 @@ static int gpio_sysfs_fd(gpio_t *gpio) {
 }
 
 static int gpio_sysfs_name(gpio_t *gpio, char *str, size_t len) {
+    /* Avoid warning: unused parameter */
+    (void)gpio;
     if (len)
         str[0] = '\0';
 
@@ -611,6 +624,8 @@ static int gpio_sysfs_name(gpio_t *gpio, char *str, size_t len) {
 }
 
 static int gpio_sysfs_label(gpio_t *gpio, char *str, size_t len) {
+    /* Avoid warning: unused parameter */
+    (void)gpio;
     if (len)
         str[0] = '\0';
 
@@ -1413,14 +1428,26 @@ int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direct
 #else /* PERIPHERY_GPIO_CDEV_SUPPORT */
 
 int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config) {
+    /* Avoid warning: unused parameter */
+    (void)path;
+    (void)line;
+    (void)config;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
 }
 
 int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config) {
+    /* Avoid warning: unused parameter */
+    (void)path;
+    (void)name;
+    (void)config;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
 }
 
 int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction) {
+    /* Avoid warning: unused parameter */
+    (void)path;
+    (void)line;
+    (void)direction;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
 }
 
