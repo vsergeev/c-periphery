@@ -93,6 +93,7 @@ int led_write(led_t *led, bool value) {
 }
 
 int led_close(led_t *led) {
+    (void)led;
     return 0;
 }
 
