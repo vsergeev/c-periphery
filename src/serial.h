@@ -36,9 +36,9 @@ typedef struct serial_handle serial_t;
 serial_t *serial_new(void);
 int serial_open(serial_t *serial, const char *path, uint32_t baudrate);
 int serial_open_advanced(serial_t *serial, const char *path,
-                            uint32_t baudrate, unsigned int databits,
-                            serial_parity_t parity, unsigned int stopbits,
-                            bool xonxoff, bool rtscts);
+                         uint32_t baudrate, unsigned int databits,
+                         serial_parity_t parity, unsigned int stopbits,
+                         bool xonxoff, bool rtscts);
 int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms);
 int serial_write(serial_t *serial, const uint8_t *buf, size_t len);
 int serial_flush(serial_t *serial);
