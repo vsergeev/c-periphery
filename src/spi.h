@@ -34,10 +34,10 @@ typedef struct spi_handle spi_t;
 /* Primary Functions */
 spi_t *spi_new(void);
 int spi_open(spi_t *spi, const char *path, unsigned int mode,
-                uint32_t max_speed);
+             uint32_t max_speed);
 int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode,
-                        uint32_t max_speed, spi_bit_order_t bit_order,
-                        uint8_t bits_per_word, uint8_t extra_flags);
+                      uint32_t max_speed, spi_bit_order_t bit_order,
+                      uint8_t bits_per_word, uint8_t extra_flags);
 int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode,
                        uint32_t max_speed, spi_bit_order_t bit_order,
                        uint8_t bits_per_word, uint32_t extra_flags);
