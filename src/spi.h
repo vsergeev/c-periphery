@@ -21,6 +21,7 @@ enum spi_error_code {
     SPI_ERROR_CONFIGURE     = -4, /* Configuring SPI device attributes */
     SPI_ERROR_TRANSFER      = -5, /* SPI transfer */
     SPI_ERROR_CLOSE         = -6, /* Closing SPI device */
+    SPI_ERROR_UNSUPPORTED   = -7, /* Unsupported attribute or operation */
 };
 
 typedef enum spi_bit_order {
@@ -47,6 +48,7 @@ int spi_get_max_speed(spi_t *spi, uint32_t *max_speed);
 int spi_get_bit_order(spi_t *spi, spi_bit_order_t *bit_order);
 int spi_get_bits_per_word(spi_t *spi, uint8_t *bits_per_word);
 int spi_get_extra_flags(spi_t *spi, uint8_t *extra_flags);
+int spi_get_extra_flags32(spi_t *spi, uint32_t *extra_flags);
 
 /* Setters */
 int spi_set_mode(spi_t *spi, unsigned int mode);
@@ -54,6 +56,7 @@ int spi_set_max_speed(spi_t *spi, uint32_t max_speed);
 int spi_set_bit_order(spi_t *spi, spi_bit_order_t bit_order);
 int spi_set_bits_per_word(spi_t *spi, uint8_t bits_per_word);
 int spi_set_extra_flags(spi_t *spi, uint8_t extra_flags);
+int spi_set_extra_flags32(spi_t *spi, uint32_t extra_flags);
 
 /* Miscellaneous */
 int spi_fd(spi_t *spi);

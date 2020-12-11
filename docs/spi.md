@@ -22,6 +22,7 @@ int spi_get_max_speed(spi_t *spi, uint32_t *max_speed);
 int spi_get_bit_order(spi_t *spi, spi_bit_order_t *bit_order);
 int spi_get_bits_per_word(spi_t *spi, uint8_t *bits_per_word);
 int spi_get_extra_flags(spi_t *spi, uint8_t *extra_flags);
+int spi_get_extra_flags32(spi_t *spi, uint32_t *extra_flags);
 
 /* Setters */
 int spi_set_mode(spi_t *spi, unsigned int mode);
@@ -29,6 +30,7 @@ int spi_set_max_speed(spi_t *spi, uint32_t max_speed);
 int spi_set_bit_order(spi_t *spi, spi_bit_order_t bit_order);
 int spi_set_bits_per_word(spi_t *spi, uint8_t bits_per_word);
 int spi_set_extra_flags(spi_t *spi, uint8_t extra_flags);
+int spi_set_extra_flags32(spi_t *spi, uint32_t extra_flags);
 
 /* Miscellaneous */
 int spi_fd(spi_t *spi);
@@ -116,6 +118,7 @@ int spi_get_max_speed(spi_t *spi, uint32_t *max_speed);
 int spi_get_bit_order(spi_t *spi, spi_bit_order_t *bit_order);
 int spi_get_bits_per_word(spi_t *spi, uint8_t *bits_per_word);
 int spi_get_extra_flags(spi_t *spi, uint8_t *extra_flags);
+int spi_get_extra_flags32(spi_t *spi, uint32_t *extra_flags);
 ```
 Get the mode, max speed, bit order, bits per word, or extra flags, respectively, of the underlying `spidev` device.
 
@@ -131,6 +134,7 @@ int spi_set_max_speed(spi_t *spi, uint32_t max_speed);
 int spi_set_bit_order(spi_t *spi, spi_bit_order_t bit_order);
 int spi_set_bits_per_word(spi_t *spi, uint8_t bits_per_word);
 int spi_set_extra_flags(spi_t *spi, uint8_t extra_flags);
+int spi_set_extra_flags32(spi_t *spi, uint32_t extra_flags);
 ```
 Set the mode, max speed, bit order, bits per word, or extra flags, respectively, on the underlying `spidev` device.
 

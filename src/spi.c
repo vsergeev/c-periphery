@@ -202,6 +202,22 @@ int spi_get_extra_flags(spi_t *spi, uint8_t *extra_flags) {
     return 0;
 }
 
+int spi_get_extra_flags32(spi_t *spi, uint32_t *extra_flags) {
+#ifdef SPI_IOC_RD_MODE32
+    uint32_t mode32;
+
+    if (ioctl(spi->fd, SPI_IOC_RD_MODE32, &mode32) < 0)
+        return _spi_error(spi, SPI_ERROR_QUERY, errno, "Getting 32-bit SPI mode flags");
+
+    /* Extra mode flags without mode 0-3 and bit order */
+    *extra_flags = mode32 & ~(SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST);
+
+    return 0;
+#else
+    return _spi_error(spi, SPI_ERROR_UNSUPPORTED, "Kernel version does not support 32-bit SPI mode flags");
+#endif
+}
+
 int spi_set_mode(spi_t *spi, unsigned int mode) {
     uint8_t data8;
 
@@ -252,6 +268,27 @@ int spi_set_extra_flags(spi_t *spi, uint8_t extra_flags) {
         return _spi_error(spi, SPI_ERROR_CONFIGURE, errno, "Setting SPI mode flags");
 
     return 0;
+}
+
+int spi_set_extra_flags32(spi_t *spi, uint32_t extra_flags) {
+#ifdef SPI_IOC_WR_MODE32
+    uint32_t mode32;
+
+    if (ioctl(spi->fd, SPI_IOC_RD_MODE32, &mode32) < 0)
+        return _spi_error(spi, SPI_ERROR_QUERY, errno, "Getting 32-bit SPI mode flags");
+
+    /* Keep mode 0-3 and bit order */
+    mode32 &= (SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST);
+    /* Set extra flags */
+    mode32 |= extra_flags;
+
+    if (ioctl(spi->fd, SPI_IOC_WR_MODE32, &mode32) < 0)
+        return _spi_error(spi, SPI_ERROR_CONFIGURE, errno, "Setting 32-bit SPI mode flags");
+
+    return 0;
+#else
+    return _spi_error(spi, SPI_ERROR_UNSUPPORTED, "Kernel version does not support 32-bit SPI mode flags");
+#endif
 }
 
 int spi_set_max_speed(spi_t *spi, uint32_t max_speed) {
