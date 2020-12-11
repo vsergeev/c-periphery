@@ -12,6 +12,8 @@ spi_t *spi_new(void);
 int spi_open(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed);
 int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed,
                       spi_bit_order_t bit_order, uint8_t bits_per_word, uint8_t extra_flags);
+int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed,
+                       spi_bit_order_t bit_order, uint8_t bits_per_word, uint32_t extra_flags);
 int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len);
 int spi_close(spi_t *spi);
 void spi_free(spi_t *spi);
@@ -74,6 +76,18 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
                       spi_bit_order_t bit_order, uint8_t bits_per_word, uint8_t extra_flags);
 ```
 Open the `spidev` device at the specified path, with the specified SPI mode, max speed in hertz, bit order, bits per word, and extra flags.
+
+`spi` should be a valid pointer to an allocated SPI handle structure. SPI mode can be 0, 1, 2, or 3. Bit order can be `MSB_FIRST` or `LSB_FIRST`, as defined [above](#enumerations). Bits per word specifies the transfer word size. Extra flags specified additional flags bitwise-ORed with the SPI mode.
+
+Returns 0 on success, or a negative [SPI error code](#return-value) on failure.
+
+------
+
+``` c
+int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed,
+                       spi_bit_order_t bit_order, uint8_t bits_per_word, uint32_t extra_flags);
+```
+Open the `spidev` device at the specified path, with the specified SPI mode, max speed in hertz, bit order, bits per word, and extra flags. This open function is the same as `spi_open_advanced()`, except that `extra_flags` can be 32-bits.
 
 `spi` should be a valid pointer to an allocated SPI handle structure. SPI mode can be 0, 1, 2, or 3. Bit order can be `MSB_FIRST` or `LSB_FIRST`, as defined [above](#enumerations). Bits per word specifies the transfer word size. Extra flags specified additional flags bitwise-ORed with the SPI mode.
 

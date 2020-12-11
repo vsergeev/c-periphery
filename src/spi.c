@@ -68,6 +68,11 @@ int spi_open(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed
 }
 
 int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed, spi_bit_order_t bit_order, uint8_t bits_per_word, uint8_t extra_flags) {
+    return spi_open_advanced2(spi, path, mode, max_speed, bit_order, bits_per_word, extra_flags);
+}
+
+int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed, spi_bit_order_t bit_order, uint8_t bits_per_word, uint32_t extra_flags) {
+    uint32_t data32;
     uint8_t data8;
 
     /* Validate arguments */
@@ -75,6 +80,10 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
         return _spi_error(spi, SPI_ERROR_ARG, 0, "Invalid mode (can be 0,1,2,3)");
     if (bit_order != MSB_FIRST && bit_order != LSB_FIRST)
         return _spi_error(spi, SPI_ERROR_ARG, 0, "Invalid bit order (can be MSB_FIRST,LSB_FIRST)");
+#ifndef SPI_IOC_WR_MODE32
+    if (extra_flags > 0xff)
+        return _spi_error(spi, SPI_ERROR_UNSUPPORTED, "Kernel version does not support 32-bit SPI mode flags");
+#endif
 
     memset(spi, 0, sizeof(spi_t));
 
@@ -83,6 +92,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
         return _spi_error(spi, SPI_ERROR_OPEN, errno, "Opening SPI device \"%s\"", path);
 
     /* Set mode, bit order, extra flags */
+#ifndef SPI_IOC_WR_MODE32
     data8 = mode | ((bit_order == LSB_FIRST) ? SPI_LSB_FIRST : 0) | extra_flags;
     if (ioctl(spi->fd, SPI_IOC_WR_MODE, &data8) < 0) {
         int errsv = errno;
@@ -90,6 +100,28 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
         spi->fd = -1;
         return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI mode");
     }
+#else
+    if (extra_flags > 0xff) {
+        /* Use 32-bit mode if extra_flags is wider than 8-bits */
+        data32 = mode | ((bit_order == LSB_FIRST) ? SPI_LSB_FIRST : 0) | extra_flags;
+        if (ioctl(spi->fd, SPI_IOC_WR_MODE32, &data32) < 0) {
+            int errsv = errno;
+            close(spi->fd);
+            spi->fd = -1;
+            return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI mode");
+        }
+    } else {
+        /* Prefer 8-bit mode, in case this library is inadvertently used on an
+         * older kernel. */
+        data8 = mode | ((bit_order == LSB_FIRST) ? SPI_LSB_FIRST : 0) | extra_flags;
+        if (ioctl(spi->fd, SPI_IOC_WR_MODE, &data8) < 0) {
+            int errsv = errno;
+            close(spi->fd);
+            spi->fd = -1;
+            return _spi_error(spi, SPI_ERROR_CONFIGURE, errsv, "Setting SPI mode");
+        }
+    }
+#endif
 
     /* Set max speed */
     if (ioctl(spi->fd, SPI_IOC_WR_MAX_SPEED_HZ, &max_speed) < 0) {

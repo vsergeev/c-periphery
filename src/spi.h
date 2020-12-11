@@ -38,6 +38,9 @@ int spi_open(spi_t *spi, const char *path, unsigned int mode,
 int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode,
                         uint32_t max_speed, spi_bit_order_t bit_order,
                         uint8_t bits_per_word, uint8_t extra_flags);
+int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode,
+                       uint32_t max_speed, spi_bit_order_t bit_order,
+                       uint8_t bits_per_word, uint32_t extra_flags);
 int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len);
 int spi_close(spi_t *spi);
 void spi_free(spi_t *spi);
