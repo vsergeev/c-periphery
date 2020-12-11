@@ -348,8 +348,9 @@ int spi_tostring(spi_t *spi, char *str, size_t len) {
     char bits_per_word_str[4];
     spi_bit_order_t bit_order;
     const char *bit_order_str;
-    uint8_t extra_flags;
-    char extra_flags_str[5];
+    uint8_t extra_flags8;
+    uint32_t extra_flags32;
+    char extra_flags_str[11];
 
     if (spi_get_mode(spi, &mode) < 0)
         strcpy(mode_str, "?");
@@ -371,10 +372,14 @@ int spi_tostring(spi_t *spi, char *str, size_t len) {
     else
         snprintf(bits_per_word_str, sizeof(bits_per_word_str), "%u", bits_per_word);
 
-    if (spi_get_extra_flags(spi, &extra_flags) < 0)
-        strcpy(extra_flags_str, "?");
-    else
-        snprintf(extra_flags_str, sizeof(extra_flags_str), "0x%02x", extra_flags);
+    if (spi_get_extra_flags32(spi, &extra_flags32) < 0) {
+        if (spi_get_extra_flags(spi, &extra_flags8) < 0)
+            strcpy(extra_flags_str, "?");
+        else
+            snprintf(extra_flags_str, sizeof(extra_flags_str), "0x%02x", extra_flags8);
+    } else {
+        snprintf(extra_flags_str, sizeof(extra_flags_str), "0x%08x", extra_flags32);
+    }
 
     return snprintf(str, len, "SPI (fd=%d, mode=%s, max_speed=%s, bit_order=%s, bits_per_word=%s, extra_flags=%s)", spi->fd, mode_str, max_speed_str, bit_order_str, bits_per_word_str, extra_flags_str);
 }
