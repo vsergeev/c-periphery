@@ -36,7 +36,6 @@ void test_open_config_close(void) {
     unsigned int mode;
     spi_bit_order_t bit_order;
     uint8_t bits_per_word;
-    uint8_t extra_flags;
     uint32_t max_speed;
 
     ptest();
@@ -47,13 +46,11 @@ void test_open_config_close(void) {
 
     passert(spi_open(spi, device, 0, 100000) == 0);
 
-    /* Confirm bit_order = MSB first, bits_per_word = 8, extra_flags = 0 */
+    /* Confirm bit_order = MSB first, bits_per_word = 8 */
     passert(spi_get_bit_order(spi, &bit_order) == 0);
     passert(bit_order == MSB_FIRST);
     passert(spi_get_bits_per_word(spi, &bits_per_word) == 0);
     passert(bits_per_word == 8);
-    passert(spi_get_extra_flags(spi, &extra_flags) == 0);
-    passert(extra_flags == 0);
 
     /* Not going to try different bit order or bits per word, because not all
      * SPI controllers support them */
