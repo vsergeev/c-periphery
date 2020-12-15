@@ -1,3 +1,15 @@
+* v2.3.0 - 12/16/2020
+    * MMIO
+        * Add advanced open function with device path for use with
+          alternate memory character devices (e.g. `/dev/gpiomem`).
+    * SPI
+        * Add getter and setter for 32-bit extra flags.
+        * Add advanced open function with 32-bit extra flags.
+    * Build
+        * Enable unused parameter warning.
+    * Contributors
+        * Rémy Dziemiaszko, @remdzi - b8adb42
+
 * v2.2.5 - 11/19/2020
     * GPIO
         * Add direction checks for improved error reporting to `gpio_write()`,
