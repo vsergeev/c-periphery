@@ -220,7 +220,7 @@ void test_interactive(void) {
     mmio_free(mmio);
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
     printf("WARNING: This test suite assumes a BeagleBone Black (AM335x) host!\n");
     printf("Other systems may experience unintended and dire consequences!\n");
     printf("Press enter to continue!\n");
