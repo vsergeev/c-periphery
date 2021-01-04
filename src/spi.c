@@ -82,7 +82,7 @@ int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode, uint32_t
         return _spi_error(spi, SPI_ERROR_ARG, 0, "Invalid bit order (can be MSB_FIRST,LSB_FIRST)");
 #ifndef SPI_IOC_WR_MODE32
     if (extra_flags > 0xff)
-        return _spi_error(spi, SPI_ERROR_UNSUPPORTED, "Kernel version does not support 32-bit SPI mode flags");
+        return _spi_error(spi, SPI_ERROR_UNSUPPORTED, 0, "Kernel version does not support 32-bit SPI mode flags");
 #endif
 
     memset(spi, 0, sizeof(spi_t));
@@ -246,7 +246,7 @@ int spi_get_extra_flags32(spi_t *spi, uint32_t *extra_flags) {
 
     return 0;
 #else
-    return _spi_error(spi, SPI_ERROR_UNSUPPORTED, "Kernel version does not support 32-bit SPI mode flags");
+    return _spi_error(spi, SPI_ERROR_UNSUPPORTED, 0, "Kernel version does not support 32-bit SPI mode flags");
 #endif
 }
 
@@ -319,7 +319,7 @@ int spi_set_extra_flags32(spi_t *spi, uint32_t extra_flags) {
 
     return 0;
 #else
-    return _spi_error(spi, SPI_ERROR_UNSUPPORTED, "Kernel version does not support 32-bit SPI mode flags");
+    return _spi_error(spi, SPI_ERROR_UNSUPPORTED, 0, "Kernel version does not support 32-bit SPI mode flags");
 #endif
 }
 
