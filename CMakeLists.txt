@@ -16,7 +16,7 @@ endif()
 add_definitions(-DPERIPHERY_GPIO_CDEV_SUPPORT=$<BOOL:${HAVE_CDEV_GPIO_HEADERS}>)
 
 # Library version
-set(VERSION "2.3.0")
+set(VERSION "2.3.1")
 set(SOVERSION ${VERSION})
 
 # Glob sources, headers, tests
