@@ -1,3 +1,11 @@
+* v2.3.1 - 01/05/2021
+    * SPI
+        * Fix compilation error and unused variable/parameter warnings when
+          building under Linux kernel headers without 32-bit SPI mode flags
+          support.
+    * Contributors
+        * Ryan Barnett, @rjbarnet - 708f7fe, 21c1b7a
+
 * v2.3.0 - 12/16/2020
     * MMIO
         * Add advanced open function with device path for use with
