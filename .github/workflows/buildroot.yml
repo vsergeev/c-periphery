@@ -1,0 +1,72 @@
+# Provide CI which utilize buildroot and the test-pkg utility to build c-periphery
+# against the following toolchains:
+#   - br-arm-full
+#       ARM toolchain with uClibc
+#   - br-arm-cortex-a9-glibc
+#       ARM toolchain with glibc and a very recent gcc version
+#   - br-arm-cortex-m4-full.
+#       ARM noMMU toolchain with no dynamic library support
+#   - br-x86-64-musl
+#       x86-64 musl toolchain
+#   - br-arm-full-static
+#       ARM toolchain which is fully static (doesn't support dynamic libraries)
+#   - sourcery-arm
+#       ARM toolchain with an old gcc version (gcc 4.8)
+#
+# Build logs are upload as part of the last step
+
+name: Buildroot
+
+# Only run on MRs or push to non-master branches (for development)
+on:
+  push:
+    branches-ignore: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  # Version of buildroot to use to perform build tests
+  BR_VER: 2020.11.1
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    # Need to perform clone/build tests outside of workspace
+    - name: Create Build Directory
+      shell: bash
+      run: mkdir -p ~/build
+
+    # Clone Buildroot and create file(s) for building c-periphery with buildroot
+    # to utilize different toolchain types
+    - name: Check-out/Setup Buildroot
+      shell: bash
+      run: |
+        cd ~/build
+        git clone -b $BR_VER git://git.buildroot.net/buildroot
+        cd buildroot
+        echo "BR2_PACKAGE_C_PERIPHERY=y" > c-periphery.config
+
+    # Run buildroot's test-pkg script to perform builds with different toolchains
+    - name: Buildroot 'test-pkg' Build
+      shell: bash
+      env:
+        # Utilize the current checkout of c-periphery with buildroot instead of released version
+        #   https://buildroot.org/downloads/manual/manual.html#_advanced_usage
+        C_PERIPHERY_OVERRIDE_SRCDIR: ${{github.workspace}}
+      run: |
+        cd ~/build/buildroot
+        # Remove hash file to disable hash checks
+        rm -f package/c-periphery/c-periphery.hash
+        # Runs builds against the 6 toolchains above and places artifacts in ~/build/br-test-pkg
+        ./utils/test-pkg -c c-periphery.config -p c-periphery -d "$(pwd)/../br-test-pkg"
+
+    # Store build logs from test-pkg as artifacts
+    - name: Upload Buildroot Logfiles
+      uses: actions/upload-artifact@v3
+      with:
+        name: logfiles
+        path:  ~/build/br-test-pkg/**/logfile
