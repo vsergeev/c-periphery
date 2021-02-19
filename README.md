@@ -6,7 +6,7 @@ c-periphery is a small C library for GPIO, LED, PWM, SPI, I2C, MMIO, and Serial 
 
 Using Python or Lua? Check out the [python-periphery](https://github.com/vsergeev/python-periphery) and [lua-periphery](https://github.com/vsergeev/lua-periphery) projects.
 
-Contributed libraries: [java-periphery](https://github.com/sgjava/java-periphery)
+Contributed libraries: [java-periphery](https://github.com/sgjava/java-periphery), [dart_periphery](https://github.com/pezi/dart_periphery)
 
 ## Examples
 
