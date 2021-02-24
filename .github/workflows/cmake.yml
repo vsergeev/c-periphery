@@ -1,0 +1,39 @@
+name: CMake
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # Perform build with GCC and Clang for C compiler
+    #   https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    strategy: 
+      matrix:
+        cc: [/usr/bin/gcc, /usr/bin/clang]
+  
+    env:
+      CC: ${{ matrix.cc }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create Build Environment
+      # We'll use this as our working directory for all subsequent commands
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      # Execute the build
+      run: make
