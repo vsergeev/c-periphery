@@ -1,5 +1,5 @@
 LIB = periphery.a
-SRCS = src/gpio.c src/gpio_cdev.c src/gpio_sysfs.c src/led.c src/pwm.c src/spi.c src/i2c.c src/mmio.c src/serial.c src/version.c
+SRCS = src/gpio.c src/gpio_cdev_v1.c src/gpio_sysfs.c src/led.c src/pwm.c src/spi.c src/i2c.c src/mmio.c src/serial.c src/version.c
 
 SRCDIR = src
 OBJDIR = obj
