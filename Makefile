@@ -1,5 +1,5 @@
 LIB = periphery.a
-SRCS = src/gpio.c src/gpio_cdev_v1.c src/gpio_sysfs.c src/led.c src/pwm.c src/spi.c src/i2c.c src/mmio.c src/serial.c src/version.c
+SRCS = src/gpio.c src/gpio_cdev_v2.c src/gpio_cdev_v1.c src/gpio_sysfs.c src/led.c src/pwm.c src/spi.c src/i2c.c src/mmio.c src/serial.c src/version.c
 
 SRCDIR = src
 OBJDIR = obj
@@ -10,7 +10,10 @@ TEST_PROGRAMS = $(basename $(wildcard tests/*.c))
 
 OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
-GPIO_CDEV_SUPPORT := $(shell ! echo "\#include <linux/gpio.h>" | $(CC) -E - >/dev/null 2>&1; echo $$?)
+GPIO_CDEV_V1_SUPPORT := $(shell ! echo -e "#include <linux/gpio.h>\n#ifndef GPIO_GET_LINEEVENT_IOCTL\n#error\n#endif" | $(CC) -E - >/dev/null 2>&1; echo $$?)
+GPIO_CDEV_V2_SUPPORT := $(shell ! echo -e "#include <linux/gpio.h>\n#ifndef GPIO_V2_LINES_MAX\n#error\n#endif" | $(CC) -E - >/dev/null 2>&1; echo $$?)
+GPIO_CDEV_SUPPORT = $(if $(filter 1,$(GPIO_CDEV_V2_SUPPORT)),2,$(if $(filter 1,$(GPIO_CDEV_V1_SUPPORT)),1,0))
+
 COMMIT_ID := $(shell git describe --abbrev --always --tags --dirty 2>/dev/null || echo "")
 
 OPT ?= -O3

@@ -7,13 +7,19 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# Check for Linux kernel header files for character device GPIO support
-include(CheckIncludeFiles)
-CHECK_INCLUDE_FILES(linux/gpio.h HAVE_CDEV_GPIO_HEADERS)
-if(NOT HAVE_CDEV_GPIO_HEADERS)
-message(WARNING "Linux kernel header files not found for character device GPIO support. c-periphery will be built with legacy sysfs GPIO support only.")
+# Check Linux kernel header files for character device GPIO support
+include(CheckSymbolExists)
+check_symbol_exists(GPIO_V2_LINES_MAX linux/gpio.h HAVE_GPIO_CDEV_V2)
+check_symbol_exists(GPIO_GET_LINEEVENT_IOCTL linux/gpio.h HAVE_GPIO_CDEV_V1)
+if(HAVE_GPIO_CDEV_V2)
+    set(GPIO_CDEV_SUPPORT 2)
+elseif(HAVE_GPIO_CDEV_V1)
+    set(GPIO_CDEV_SUPPORT 1)
+else()
+    set(GPIO_CDEV_SUPPORT 0)
+    message(WARNING "Missing character device GPIO support in Linux kernel header files. c-periphery will be built with legacy sysfs GPIO support only.")
 endif()
-add_definitions(-DPERIPHERY_GPIO_CDEV_SUPPORT=$<BOOL:${HAVE_CDEV_GPIO_HEADERS}>)
+add_definitions(-DPERIPHERY_GPIO_CDEV_SUPPORT=${GPIO_CDEV_SUPPORT})
 
 # Library version
 set(VERSION "2.3.1")

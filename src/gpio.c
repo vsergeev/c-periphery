@@ -183,3 +183,36 @@ const char *gpio_errmsg(gpio_t *gpio) {
     return gpio->error.errmsg;
 }
 
+#if !PERIPHERY_GPIO_CDEV_SUPPORT
+
+int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction)  {
+    (void)path;
+    (void)line;
+    (void)direction;
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
+}
+
+int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction) {
+    (void)gpio;
+    (void)path;
+    (void)name;
+    (void)direction;
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
+}
+
+int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const gpio_config_t *config) {
+    (void)path;
+    (void)line;
+    (void)config;
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
+}
+
+int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, const gpio_config_t *config) {
+    (void)path;
+    (void)name;
+    (void)config;
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "c-periphery library built without character device GPIO support.");
+}
+
+#endif
+

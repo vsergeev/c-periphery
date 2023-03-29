@@ -17,45 +17,35 @@
 #include "gpio.h"
 #include "gpio_internal.h"
 
-#if PERIPHERY_GPIO_CDEV_SUPPORT == 1
+#if PERIPHERY_GPIO_CDEV_SUPPORT == 2
 #include <linux/gpio.h>
 #endif
 
 /*********************************************************************************/
-/* cdev v1 implementation */
+/* cdev v2 implementation */
 /*********************************************************************************/
 
-#if PERIPHERY_GPIO_CDEV_SUPPORT == 1
+#if PERIPHERY_GPIO_CDEV_SUPPORT == 2
 
 static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge, gpio_bias_t bias, gpio_drive_t drive, bool inverted) {
     uint32_t flags = 0;
 
-    #ifdef GPIOHANDLE_REQUEST_BIAS_PULL_UP
     if (bias == GPIO_BIAS_PULL_UP)
-        flags |= GPIOHANDLE_REQUEST_BIAS_PULL_UP;
+        flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_UP;
     else if (bias == GPIO_BIAS_PULL_DOWN)
-        flags |= GPIOHANDLE_REQUEST_BIAS_PULL_DOWN;
+        flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN;
     else if (bias == GPIO_BIAS_DISABLE)
-        flags |= GPIOHANDLE_REQUEST_BIAS_DISABLE;
-    #else
-    if (bias != GPIO_BIAS_DEFAULT)
-        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring GPIO line bias");
-    #endif
+        flags |= GPIO_V2_LINE_FLAG_BIAS_DISABLED;
 
-    #ifdef GPIOHANDLE_REQUEST_OPEN_DRAIN
     if (drive == GPIO_DRIVE_OPEN_DRAIN)
-        flags |= GPIOHANDLE_REQUEST_OPEN_DRAIN;
+        flags |= GPIO_V2_LINE_FLAG_OPEN_DRAIN;
     else if (drive == GPIO_DRIVE_OPEN_SOURCE)
-        flags |= GPIOHANDLE_REQUEST_OPEN_SOURCE;
-    #else
-    if (drive != GPIO_DRIVE_DEFAULT)
-        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring GPIO line drive");
-    #endif
+        flags |= GPIO_V2_LINE_FLAG_OPEN_SOURCE;
 
     if (inverted)
-        flags |= GPIOHANDLE_REQUEST_ACTIVE_LOW;
+        flags |= GPIO_V2_LINE_FLAG_ACTIVE_LOW;
 
-    /* FIXME this should really use GPIOHANDLE_SET_CONFIG_IOCTL instead of
+    /* FIXME this should really use GPIO_V2_LINE_SET_CONFIG_IOCTL instead of
      * closing and reopening, especially to preserve output value on
      * configuration changes */
 
@@ -67,51 +57,45 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
     }
 
     if (direction == GPIO_DIR_IN) {
-        if (edge == GPIO_EDGE_NONE) {
-            struct gpiohandle_request request = {0};
+        struct gpio_v2_line_request line_request = {0};
 
-            request.lineoffsets[0] = gpio->u.cdev.line;
-            request.flags = flags | GPIOHANDLE_REQUEST_INPUT;
-            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label) - 1);
-            request.consumer_label[sizeof(request.consumer_label) - 1] = '\0';
-            request.lines = 1;
+        flags |= GPIO_V2_LINE_FLAG_INPUT;
+        flags |= (edge == GPIO_EDGE_RISING) ? GPIO_V2_LINE_FLAG_EDGE_RISING :
+                 (edge == GPIO_EDGE_FALLING) ? GPIO_V2_LINE_FLAG_EDGE_FALLING :
+                 (edge == GPIO_EDGE_BOTH) ? (GPIO_V2_LINE_FLAG_EDGE_RISING | GPIO_V2_LINE_FLAG_EDGE_FALLING) : 0;
 
-            if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEHANDLE_IOCTL, &request) < 0)
-                return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening input line handle");
+        line_request.offsets[0] = gpio->u.cdev.line;
+        strncpy(line_request.consumer, gpio->u.cdev.label, sizeof(line_request.consumer) - 1);
+        line_request.consumer[sizeof(line_request.consumer) - 1] = '\0';
+        line_request.config.flags = flags;
+        line_request.num_lines = 1;
 
-            gpio->u.cdev.line_fd = request.fd;
-        } else {
-            struct gpioevent_request request = {0};
+        if (ioctl(gpio->u.cdev.chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_request) < 0)
+            return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening input line handle");
 
-            request.lineoffset = gpio->u.cdev.line;
-            request.handleflags = flags | GPIOHANDLE_REQUEST_INPUT;
-            request.eventflags = (edge == GPIO_EDGE_RISING) ? GPIOEVENT_REQUEST_RISING_EDGE :
-                                 (edge == GPIO_EDGE_FALLING) ? GPIOEVENT_REQUEST_FALLING_EDGE :
-                                                               GPIOEVENT_REQUEST_BOTH_EDGES;
-            strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label) - 1);
-            request.consumer_label[sizeof(request.consumer_label) - 1] = '\0';
-
-            if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEEVENT_IOCTL, &request) < 0)
-                return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening input event line handle");
-
-            gpio->u.cdev.line_fd = request.fd;
-        }
+        gpio->u.cdev.line_fd = line_request.fd;
     } else {
-        struct gpiohandle_request request = {0};
+        struct gpio_v2_line_request line_request = {0};
+
         bool initial_value = (direction == GPIO_DIR_OUT_HIGH) ? true : false;
         initial_value ^= inverted;
 
-        request.lineoffsets[0] = gpio->u.cdev.line;
-        request.flags = flags | GPIOHANDLE_REQUEST_OUTPUT;
-        request.default_values[0] = initial_value;
-        strncpy(request.consumer_label, gpio->u.cdev.label, sizeof(request.consumer_label) - 1);
-        request.consumer_label[sizeof(request.consumer_label) - 1] = '\0';
-        request.lines = 1;
+        flags |= GPIO_V2_LINE_FLAG_OUTPUT;
 
-        if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEHANDLE_IOCTL, &request) < 0)
+        line_request.offsets[0] = gpio->u.cdev.line;
+        strncpy(line_request.consumer, gpio->u.cdev.label, sizeof(line_request.consumer) - 1);
+        line_request.consumer[sizeof(line_request.consumer) - 1] = '\0';
+        line_request.config.flags = flags;
+        line_request.config.num_attrs = 1;
+        line_request.config.attrs[0].attr.id = GPIO_V2_LINE_ATTR_ID_OUTPUT_VALUES;
+        line_request.config.attrs[0].attr.values = initial_value & 0x1;
+        line_request.config.attrs[0].mask = 1;
+        line_request.num_lines = 1;
+
+        if (ioctl(gpio->u.cdev.chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_request) < 0)
             return _gpio_error(gpio, GPIO_ERROR_OPEN, errno, "Opening output line handle");
 
-        gpio->u.cdev.line_fd = request.fd;
+        gpio->u.cdev.line_fd = line_request.fd;
     }
 
     gpio->u.cdev.direction = (direction == GPIO_DIR_IN) ? GPIO_DIR_IN : GPIO_DIR_OUT;
@@ -124,46 +108,46 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
 }
 
 static int gpio_cdev_read(gpio_t *gpio, bool *value) {
-    struct gpiohandle_data data = {0};
+    struct gpio_v2_line_values line_values = {0, 1};
 
-    if (ioctl(gpio->u.cdev.line_fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL, &data) < 0)
+    if (ioctl(gpio->u.cdev.line_fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &line_values) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Getting line value");
 
-    *value = data.values[0];
+    *value = line_values.bits & 0x1;
 
     return 0;
 }
 
 static int gpio_cdev_write(gpio_t *gpio, bool value) {
-    struct gpiohandle_data data = {0};
+    struct gpio_v2_line_values line_values = {0, 1};
 
     if (gpio->u.cdev.direction != GPIO_DIR_OUT)
         return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: cannot write to input GPIO");
 
-    data.values[0] = value;
+    line_values.bits = value & 0x1;
 
-    if (ioctl(gpio->u.cdev.line_fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data) < 0)
+    if (ioctl(gpio->u.cdev.line_fd, GPIO_V2_LINE_SET_VALUES_IOCTL, &line_values) < 0)
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Setting line value");
 
     return 0;
 }
 
 static int gpio_cdev_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
-    struct gpioevent_data event_data = {0};
+    struct gpio_v2_line_event line_event = {0};
 
     if (gpio->u.cdev.direction != GPIO_DIR_IN)
         return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: cannot read event of output GPIO");
     else if (gpio->u.cdev.edge == GPIO_EDGE_NONE)
         return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: GPIO edge not set");
 
-    if (read(gpio->u.cdev.line_fd, &event_data, sizeof(event_data)) < (ssize_t)sizeof(event_data))
+    if (read(gpio->u.cdev.line_fd, &line_event, sizeof(line_event)) < (ssize_t)sizeof(line_event))
         return _gpio_error(gpio, GPIO_ERROR_IO, errno, "Reading GPIO event");
 
     if (edge)
-        *edge = (event_data.id == GPIOEVENT_EVENT_RISING_EDGE) ? GPIO_EDGE_RISING :
-                (event_data.id == GPIOEVENT_EVENT_FALLING_EDGE) ? GPIO_EDGE_FALLING : GPIO_EDGE_NONE;
+        *edge = (line_event.id == GPIO_V2_LINE_EVENT_RISING_EDGE) ? GPIO_EDGE_RISING :
+                (line_event.id == GPIO_V2_LINE_EVENT_FALLING_EDGE) ? GPIO_EDGE_FALLING : GPIO_EDGE_NONE;
     if (timestamp)
-        *timestamp = event_data.timestamp;
+        *timestamp = line_event.timestamp_ns;
 
     return 0;
 }
@@ -293,14 +277,14 @@ static int gpio_cdev_fd(gpio_t *gpio) {
 }
 
 static int gpio_cdev_name(gpio_t *gpio, char *str, size_t len) {
-    struct gpioline_info line_info = {0};
+    struct gpio_v2_line_info line_info = {0};
 
     if (!len)
         return 0;
 
-    line_info.line_offset = gpio->u.cdev.line;
+    line_info.offset = gpio->u.cdev.line;
 
-    if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEINFO_IOCTL, &line_info) < 0)
+    if (ioctl(gpio->u.cdev.chip_fd, GPIO_V2_GET_LINEINFO_IOCTL, &line_info) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Querying GPIO line info for line %u", gpio->u.cdev.line);
 
     strncpy(str, line_info.name, len - 1);
@@ -310,14 +294,14 @@ static int gpio_cdev_name(gpio_t *gpio, char *str, size_t len) {
 }
 
 static int gpio_cdev_label(gpio_t *gpio, char *str, size_t len) {
-    struct gpioline_info line_info = {0};
+    struct gpio_v2_line_info line_info = {0};
 
     if (!len)
         return 0;
 
-    line_info.line_offset = gpio->u.cdev.line;
+    line_info.offset = gpio->u.cdev.line;
 
-    if (ioctl(gpio->u.cdev.chip_fd, GPIO_GET_LINEINFO_IOCTL, &line_info) < 0)
+    if (ioctl(gpio->u.cdev.chip_fd, GPIO_V2_GET_LINEINFO_IOCTL, &line_info) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Querying GPIO line info for line %u", gpio->u.cdev.line);
 
     strncpy(str, line_info.consumer, len - 1);
@@ -524,13 +508,13 @@ int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, co
     }
 
     /* Loop through every line */
-    struct gpioline_info line_info = {0};
+    struct gpio_v2_line_info line_info = {0};
     unsigned int line;
     for (line = 0; line < chip_info.lines; line++) {
-        line_info.line_offset = line;
+        line_info.offset = line;
 
         /* Get the line info */
-        if (ioctl(fd, GPIO_GET_LINEINFO_IOCTL, &line_info) < 0) {
+        if (ioctl(fd, GPIO_V2_GET_LINEINFO_IOCTL, &line_info) < 0) {
             int errsv = errno;
             close(fd);
             return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Querying GPIO line info for line %u", line);
