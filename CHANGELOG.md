@@ -1,3 +1,7 @@
+* v2.4.0 - 03/31/2023
+    * GPIO
+        * Add support for gpio-cdev v2 ABI.
+
 * v2.3.1 - 01/05/2021
     * SPI
         * Fix compilation error and unused variable/parameter warnings when
