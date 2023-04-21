@@ -1,3 +1,8 @@
+* v2.4.1 - 04/21/2023
+    * GPIO
+        * Fix realtime timestamp reporting for line events in gpio-cdev v2
+          implementation.
+
 * v2.4.0 - 03/31/2023
     * GPIO
         * Add support for gpio-cdev v2 ABI.
