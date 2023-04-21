@@ -63,6 +63,7 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
         flags |= (edge == GPIO_EDGE_RISING) ? GPIO_V2_LINE_FLAG_EDGE_RISING :
                  (edge == GPIO_EDGE_FALLING) ? GPIO_V2_LINE_FLAG_EDGE_FALLING :
                  (edge == GPIO_EDGE_BOTH) ? (GPIO_V2_LINE_FLAG_EDGE_RISING | GPIO_V2_LINE_FLAG_EDGE_FALLING) : 0;
+        flags |= (edge != GPIO_EDGE_NONE) ? GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME : 0;
 
         line_request.offsets[0] = gpio->u.cdev.line;
         strncpy(line_request.consumer, gpio->u.cdev.label, sizeof(line_request.consumer) - 1);
