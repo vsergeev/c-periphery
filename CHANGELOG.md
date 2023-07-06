@@ -1,3 +1,8 @@
+* v2.4.2 - 07/05/2023
+    * GPIO
+        * Fix building under Linux kernel headers missing realtime event
+          timestamp support in the gpio-cdev v2 ABI.
+
 * v2.4.1 - 04/21/2023
     * GPIO
         * Fix realtime timestamp reporting for line events in gpio-cdev v2
