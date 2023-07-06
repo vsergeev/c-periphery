@@ -8,8 +8,9 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Check Linux kernel header files for character device GPIO support
+include(CheckSourceCompiles)
+check_source_compiles(C "#include <linux/gpio.h>\nint main(void) { GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME; return 0; }" HAVE_GPIO_CDEV_V2)
 include(CheckSymbolExists)
-check_symbol_exists(GPIO_V2_LINES_MAX linux/gpio.h HAVE_GPIO_CDEV_V2)
 check_symbol_exists(GPIO_GET_LINEEVENT_IOCTL linux/gpio.h HAVE_GPIO_CDEV_V1)
 if(HAVE_GPIO_CDEV_V2)
     set(GPIO_CDEV_SUPPORT 2)
