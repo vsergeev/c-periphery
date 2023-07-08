@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        cc: [/usr/bin/gcc, /usr/bin/clang]
+
+    env:
+      CC: ${{ matrix.cc }}
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build with make
+      run: make all tests
+
+    - name: Build with cmake
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
