@@ -1,4 +1,4 @@
-# c-periphery [![Build Status](https://app.travis-ci.com/vsergeev/c-periphery.svg?branch=master)](https://app.travis-ci.com/github/vsergeev/c-periphery) [![GitHub release](https://img.shields.io/github/release/vsergeev/c-periphery.svg?maxAge=7200)](https://github.com/vsergeev/c-periphery) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vsergeev/c-periphery/blob/master/LICENSE)
+# c-periphery [![Build Status](https://github.com/vsergeev/c-periphery/actions/workflows/build.yml/badge.svg)](https://github.com/vsergeev/c-periphery/actions/workflows/build.yml) [![GitHub release](https://img.shields.io/github/release/vsergeev/c-periphery.svg?maxAge=7200)](https://github.com/vsergeev/c-periphery) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vsergeev/c-periphery/blob/master/LICENSE)
 
 ## C Library for Linux Peripheral I/O (GPIO, LED, PWM, SPI, I2C, MMIO, Serial)
 
