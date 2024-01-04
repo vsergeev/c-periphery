@@ -26,6 +26,7 @@ enum pwm_error_code {
 typedef enum pwm_polarity {
     PWM_POLARITY_NORMAL,    /* Normal polarity */
     PWM_POLARITY_INVERSED,  /* Inversed polarity */
+    PWM_POLARITY_INVALID,
 } pwm_polarity_t;
 
 typedef struct pwm_handle pwm_t;

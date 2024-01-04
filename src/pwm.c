@@ -284,7 +284,7 @@ int pwm_get_duty_cycle_ns(pwm_t *pwm, uint64_t *duty_cycle_ns) {
 
 int pwm_get_period(pwm_t *pwm, double *period) {
     int ret;
-    uint64_t period_ns;
+    uint64_t period_ns = 0;
 
     if ((ret = pwm_get_period_ns(pwm, &period_ns)) < 0)
         return ret;
@@ -296,7 +296,7 @@ int pwm_get_period(pwm_t *pwm, double *period) {
 
 int pwm_get_duty_cycle(pwm_t *pwm, double *duty_cycle) {
     int ret;
-    uint64_t duty_cycle_ns;
+    uint64_t duty_cycle_ns = 0;
 
     if ((ret = pwm_get_duty_cycle_ns(pwm, &duty_cycle_ns)) < 0)
         return ret;
@@ -308,7 +308,7 @@ int pwm_get_duty_cycle(pwm_t *pwm, double *duty_cycle) {
 
 int pwm_get_frequency(pwm_t *pwm, double *frequency) {
     int ret;
-    uint64_t period_ns;
+    uint64_t period_ns = 0;
 
     if ((ret = pwm_get_period_ns(pwm, &period_ns)) < 0)
         return ret;
@@ -413,9 +413,9 @@ int pwm_tostring(pwm_t *pwm, char *str, size_t len) {
     char period_str[16];
     double duty_cycle;
     char duty_cycle_str[16];
-    pwm_polarity_t polarity;
+    pwm_polarity_t polarity = PWM_POLARITY_INVALID;
     const char *polarity_str;
-    bool enabled;
+    bool enabled = false;
     const char *enabled_str;
 
     if (pwm_get_period(pwm, &period) < 0)
