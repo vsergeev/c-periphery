@@ -413,7 +413,7 @@ int pwm_tostring(pwm_t *pwm, char *str, size_t len) {
     char period_str[16];
     double duty_cycle;
     char duty_cycle_str[16];
-    pwm_polarity_t polarity = PWM_POLARITY_INVALID;
+    pwm_polarity_t polarity = 0;
     const char *polarity_str;
     bool enabled = false;
     const char *enabled_str;

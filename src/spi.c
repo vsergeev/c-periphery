@@ -352,7 +352,7 @@ int spi_tostring(spi_t *spi, char *str, size_t len) {
     char max_speed_str[16];
     uint8_t bits_per_word = 0;
     char bits_per_word_str[4];
-    spi_bit_order_t bit_order = INVALID_ORDER;
+    spi_bit_order_t bit_order = 0;
     const char *bit_order_str;
     uint8_t extra_flags8 = 0;
     uint32_t extra_flags32 = 0;

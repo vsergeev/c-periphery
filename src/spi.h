@@ -27,7 +27,6 @@ enum spi_error_code {
 typedef enum spi_bit_order {
     MSB_FIRST,
     LSB_FIRST,
-    INVALID_ORDER,
 } spi_bit_order_t;
 
 typedef struct spi_handle spi_t;
