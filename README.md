@@ -471,6 +471,13 @@ $ gcc myprog.c -lperiphery -o myprog
 
 Otherwise, additional include (`-I`) and library (`-L`) paths may be required.
 
+### Use CMake
+
+```cmake
+find_package(periphery REQUIRED)
+target_link_libraries(YOUR_TARGET periphery::periphery)
+```
+
 ## Documentation
 
 `man` page style documentation for each interface wrapper is available in [docs](docs/) folder.
