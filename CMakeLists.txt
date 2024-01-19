@@ -44,11 +44,14 @@ add_definitions(-DPERIPHERY_VERSION_COMMIT="${COMMIT_ID}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-stringop-truncation -fPIC")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Declare library target
 add_library(periphery ${periphery_SOURCES} ${periphery_HEADERS})
 set_target_properties(periphery PROPERTIES SOVERSION ${VERSION})
+target_include_directories(periphery PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
 
 include(GNUInstallDirs)
 
@@ -59,6 +62,20 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/libperiphery.pc.in ${CMAKE_CURREN
 install(TARGETS periphery DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${periphery_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libperiphery.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}-config
+  RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(
+  EXPORT ${PROJECT_NAME}-config
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
 
 # Declare test targets if enabled
 if(BUILD_TESTS)
