@@ -40,7 +40,7 @@ static int _led_error(led_t *led, int code, int c_errno, const char *fmt, ...) {
 
     /* Tack on strerror() and errno */
     if (c_errno) {
-        char buf[64];
+        char buf[64] = {0};
         strerror_r(c_errno, buf, sizeof(buf));
         snprintf(led->error.errmsg+strlen(led->error.errmsg), sizeof(led->error.errmsg)-strlen(led->error.errmsg), ": %s [errno %d]", buf, c_errno);
     }
