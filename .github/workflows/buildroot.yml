@@ -26,7 +26,7 @@ on:
 
 env:
   # Version of buildroot to use to perform build tests
-  BR_VER: 2020.11.1
+  BR_VER: 2024.02.11
 
 jobs:
   build:
