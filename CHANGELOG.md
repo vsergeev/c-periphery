@@ -1,3 +1,17 @@
+* v2.4.3 - 02/28/2025
+    * Fix memory safety with some older `strerror_r()` implementations in error
+      formatters for all modules.
+    * Build
+        * Fix character device GPIO support tests in Makefile for alternate
+          shells and older versions of make.
+        * Fix cross-compilation in Makefile from Windows.
+        * Fix CMake minimum required version.
+        * Add CMake package generation.
+    * Contributors
+        * Ryan Barnett, @rjbarnet - ec31b39
+        * javalikescript, @javalikescript - 024a25d
+        * HopeCollector, @HopeCollector - aca6815, b5e53e6
+
 * v2.4.2 - 07/05/2023
     * GPIO
         * Fix building under Linux kernel headers missing realtime event
