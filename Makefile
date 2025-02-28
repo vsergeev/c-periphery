@@ -11,8 +11,8 @@ TEST_PROGRAMS = $(basename $(wildcard tests/*.c))
 OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 NULL := $(if $(filter Windows_NT,$(OS)),NUL,/dev/null)
-GPIO_CDEV_V1_SUPPORT := $(shell ! echo -e "\x23include <linux/gpio.h>\n\x23ifndef GPIO_GET_LINEEVENT_IOCTL\n\x23error\n\x23endif" | $(CC) -E - >$(NULL) 2>&1; echo $$?)
-GPIO_CDEV_V2_SUPPORT := $(shell ! echo -e "\x23include <linux/gpio.h>\nint main(void) { GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME; return 0; }" | $(CC) -x c - >$(NULL) 2>&1; echo $$?)
+GPIO_CDEV_V1_SUPPORT := $(shell ! env printf "\x23include <linux/gpio.h>\n\x23ifndef GPIO_GET_LINEEVENT_IOCTL\n\x23error\n\x23endif" | $(CC) -E - >$(NULL) 2>&1; echo $$?)
+GPIO_CDEV_V2_SUPPORT := $(shell ! env printf "\x23include <linux/gpio.h>\nint main(void) { GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME; return 0; }" | $(CC) -x c - >$(NULL) 2>&1; echo $$?)
 GPIO_CDEV_SUPPORT = $(if $(filter 1,$(GPIO_CDEV_V2_SUPPORT)),2,$(if $(filter 1,$(GPIO_CDEV_V1_SUPPORT)),1,0))
 
 COMMIT_ID := $(shell git describe --abbrev --always --tags --dirty 2>$(NULL) || echo "")
