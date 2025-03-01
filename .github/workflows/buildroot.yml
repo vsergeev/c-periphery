@@ -26,14 +26,14 @@ on:
 
 env:
   # Version of buildroot to use to perform build tests
-  BR_VER: 2020.11.1
+  BR_VER: 2024.02.11
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # Need to perform clone/build tests outside of workspace
     - name: Create Build Directory
@@ -66,7 +66,7 @@ jobs:
 
     # Store build logs from test-pkg as artifacts
     - name: Upload Buildroot Logfiles
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: logfiles
         path:  ~/build/br-test-pkg/**/logfile

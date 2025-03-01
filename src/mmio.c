@@ -40,7 +40,7 @@ static int _mmio_error(mmio_t *mmio, int code, int c_errno, const char *fmt, ...
 
     /* Tack on strerror() and errno */
     if (c_errno) {
-        char buf[64];
+        char buf[64] = {0};
         strerror_r(c_errno, buf, sizeof(buf));
         snprintf(mmio->error.errmsg+strlen(mmio->error.errmsg), sizeof(mmio->error.errmsg)-strlen(mmio->error.errmsg), ": %s [errno %d]", buf, c_errno);
     }

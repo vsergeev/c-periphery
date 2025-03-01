@@ -44,7 +44,7 @@ static int _serial_error(serial_t *serial, int code, int c_errno, const char *fm
 
     /* Tack on strerror() and errno */
     if (c_errno) {
-        char buf[64];
+        char buf[64] = {0};
         strerror_r(c_errno, buf, sizeof(buf));
         snprintf(serial->error.errmsg+strlen(serial->error.errmsg), sizeof(serial->error.errmsg)-strlen(serial->error.errmsg), ": %s [errno %d]", buf, c_errno);
     }

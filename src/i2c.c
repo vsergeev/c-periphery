@@ -42,7 +42,7 @@ static int _i2c_error(i2c_t *i2c, int code, int c_errno, const char *fmt, ...) {
 
     /* Tack on strerror() and errno */
     if (c_errno) {
-        char buf[64];
+        char buf[64] = {0};
         strerror_r(c_errno, buf, sizeof(buf));
         snprintf(i2c->error.errmsg+strlen(i2c->error.errmsg), sizeof(i2c->error.errmsg)-strlen(i2c->error.errmsg), ": %s [errno %d]", buf, c_errno);
     }

@@ -47,7 +47,7 @@ static int _pwm_error(pwm_t *pwm, int code, int c_errno, const char *fmt, ...) {
 
     /* Tack on strerror() and errno */
     if (c_errno) {
-        char buf[64];
+        char buf[64] = {0};
         strerror_r(c_errno, buf, sizeof(buf));
         snprintf(pwm->error.errmsg+strlen(pwm->error.errmsg), sizeof(pwm->error.errmsg)-strlen(pwm->error.errmsg), ": %s [errno %d]", buf, c_errno);
     }
