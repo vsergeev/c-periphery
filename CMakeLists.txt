@@ -39,6 +39,9 @@ execute_process(
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+# Set Warning level to all and extra
+set(CMAKE_WARNINGS_FLAGS "-Wall -Wextra")
+
 # Define C flags and include directories
 add_definitions(-DPERIPHERY_VERSION_COMMIT="${COMMIT_ID}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-stringop-truncation -fPIC")
