@@ -40,7 +40,7 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 # Set Warning level to all and extra
-set(CMAKE_WARNINGS_FLAGS "-Wall -Wextra")
+set(CMAKE_WARNINGS_FLAGS "-Wall -Wextra -Wno-stringop-truncation")
 
 # Set C and C++ standard to 2023
 set(CMAKE_C_STANDARD 23)

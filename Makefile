@@ -20,7 +20,7 @@ COMMIT_ID := $(shell git describe --abbrev --always --tags --dirty 2>$(NULL) || 
 OPT ?= -O3
 CFLAGS += -std=gnu2x -pedantic
 CFLAGS += $(OPT)
-CFLAGS += -Wall -Wextra $(DEBUG) -fPIC
+CFLAGS += -Wall -Wextra -Wno-stringop-truncation $(DEBUG) -fPIC
 CFLAGS += -DPERIPHERY_VERSION_COMMIT=\"$(COMMIT_ID)\" -DPERIPHERY_GPIO_CDEV_SUPPORT=$(GPIO_CDEV_SUPPORT)
 LDFLAGS +=
 
