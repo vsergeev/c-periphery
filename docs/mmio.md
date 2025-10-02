@@ -12,10 +12,12 @@ mmio_t *mmio_new(void);
 int mmio_open(mmio_t *mmio, uintptr_t base, size_t size);
 int mmio_open_advanced(mmio_t *mmio, uintptr_t base, size_t size, const char *path);
 void *mmio_ptr(mmio_t *mmio);
+int mmio_read64(mmio_t *mmio, uintptr_t offset, uint64_t *value);
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value);
 int mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value);
 int mmio_read8(mmio_t *mmio, uintptr_t offset, uint8_t *value);
 int mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len);
+int mmio_write64(mmio_t *mmio, uintptr_t offset, uint64_t value);
 int mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value);
 int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value);
 int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value);
@@ -76,12 +78,13 @@ This function is a simple accessor to the MMIO handle structure and always succe
 ------
 
 ``` c
+int mmio_read64(mmio_t *mmio, uintptr_t offset, uint64_t *value);
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value);
 int mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value);
 int mmio_read8(mmio_t *mmio, uintptr_t offset, uint8_t *value);
 int mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len);
 ```
-Read 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, from mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
+Read 64-bits, 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, from mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
 
 `mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 
@@ -90,12 +93,13 @@ Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
 ------
 
 ``` c
+int mmio_write32(mmio_t *mmio, uintptr_t offset, uint64_t value);
 int mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value);
 int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value);
 int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value);
 int mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len);
 ```
-Write 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, to mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
+Write 64-bits, 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, to mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
 
 `mmio` should be a valid pointer to an MMIO handle opened with one of the `mmio_open*()` functions.
 

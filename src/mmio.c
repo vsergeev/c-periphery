@@ -98,6 +98,15 @@ void *mmio_ptr(mmio_t *mmio) {
 /* WARNING: These functions may trigger a bus fault on some CPUs if an
  * unaligned address is accessed! */
 
+int mmio_read64(mmio_t *mmio, uintptr_t offset, uint64_t *value) {
+    offset += (mmio->base - mmio->aligned_base);
+    if ((offset+8) > mmio->aligned_size)
+        return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
+
+    *value = *(volatile uint64_t *)(((volatile uint8_t *)mmio->ptr) + offset);
+    return 0;
+}
+
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+4) > mmio->aligned_size)
@@ -131,6 +140,15 @@ int mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len) {
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
 
     memcpy((void *)buf, (const void *)(((volatile uint8_t *)mmio->ptr) + offset), len);
+    return 0;
+}
+
+int mmio_write64(mmio_t *mmio, uintptr_t offset, uint64_t value) {
+    offset += (mmio->base - mmio->aligned_base);
+    if ((offset+8) > mmio->aligned_size)
+        return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
+
+    *(volatile uint64_t *)(((volatile uint8_t *)mmio->ptr) + offset) = value;
     return 0;
 }
 
