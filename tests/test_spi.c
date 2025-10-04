@@ -89,6 +89,11 @@ void test_open_config_close(void) {
 void test_loopback(void) {
     spi_t *spi;
     uint8_t buf[32];
+    uint8_t rxbuf1[32], rxbuf2[32];
+    spi_msg_t msgs[3] = {
+        { .txbuf = buf, .rxbuf = rxbuf1, .len = sizeof(buf), .deselect = true },
+        { .txbuf = buf, .rxbuf = rxbuf2, .len = sizeof(buf), .deselect = false },
+    };
     unsigned int i;
 
     ptest();
@@ -107,6 +112,13 @@ void test_loopback(void) {
     for (i = 0; i < sizeof(buf); i++)
         passert(buf[i] == i);
 
+    passert(spi_transfer_advanced(spi, msgs, 3) == 0);
+
+    for (i = 0; i < sizeof(rxbuf1); i++) {
+        passert(rxbuf1[i] == i);
+        passert(rxbuf2[i] == i);
+    }
+
     passert(spi_close(spi) == 0);
 
     /* Free SPI */
@@ -123,6 +135,11 @@ void test_interactive(void) {
     char str[256];
     spi_t *spi;
     uint8_t buf[] = { 0x55, 0xaa, 0x0f, 0xf0 };
+    spi_msg_t msgs[3] = {
+        { .txbuf = buf, .rxbuf = NULL, .len = 4, .deselect = true },
+        { .txbuf = buf, .rxbuf = NULL, .len = 4, .deselect = false },
+        { .txbuf = buf, .rxbuf = NULL, .len = 4, .deselect = false },
+    };
 
     ptest();
 
@@ -178,6 +195,14 @@ void test_interactive(void) {
     passert(getc_yes());
 
     passert(spi_set_mode(spi, 0) == 0);
+
+    /* Multiple transfer */
+    printf("Press enter to start transfer...");
+    getc(stdin);
+    passert(spi_transfer_advanced(spi, msgs, 3) == 0);
+    printf("SPI data 0x55, 0xaa, 0x0f, 0xf0\n");
+    printf("SPI transfer of three messages, with deselect after first message occurred? y/n\n");
+    passert(getc_yes());
 
     /* 500KHz transfer */
     passert(spi_set_max_speed(spi, 500000) == 0);
