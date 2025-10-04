@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 enum spi_error_code {
@@ -29,6 +30,15 @@ typedef enum spi_bit_order {
     LSB_FIRST,
 } spi_bit_order_t;
 
+typedef struct spi_msg {
+    const uint8_t *txbuf;
+    uint8_t *rxbuf;
+    size_t len;
+    bool deselect;
+    uint16_t deselect_delay_us;
+    uint8_t word_delay_us;
+} spi_msg_t;
+
 typedef struct spi_handle spi_t;
 
 /* Primary Functions */
@@ -42,6 +52,7 @@ int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode,
                        uint32_t max_speed, spi_bit_order_t bit_order,
                        uint8_t bits_per_word, uint32_t extra_flags);
 int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len);
+int spi_transfer_advanced(spi_t *spi, const spi_msg_t *msgs, size_t count);
 int spi_close(spi_t *spi);
 void spi_free(spi_t *spi);
 

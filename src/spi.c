@@ -18,6 +18,7 @@
 #include <sys/ioctl.h>
 #include <linux/ioctl.h>
 #include <linux/spi/spidev.h>
+#include <linux/version.h>
 
 #include "spi.h"
 
@@ -159,6 +160,31 @@ int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len) {
 
     /* Transfer */
     if (ioctl(spi->fd, SPI_IOC_MESSAGE(1), &spi_xfer) < 1)
+        return _spi_error(spi, SPI_ERROR_TRANSFER, errno, "SPI transfer");
+
+    return 0;
+}
+
+int spi_transfer_advanced(spi_t *spi, const spi_msg_t *msgs, size_t count) {
+    struct spi_ioc_transfer spi_xfer[count];
+
+    /* Prepare SPI transfer structures */
+    memset(spi_xfer, 0, count * sizeof(struct spi_ioc_transfer));
+    for (size_t i = 0; i < count; i++) {
+        spi_xfer[i].tx_buf = (uintptr_t)msgs[i].txbuf;
+        spi_xfer[i].rx_buf = (uintptr_t)msgs[i].rxbuf;
+        spi_xfer[i].len = msgs[i].len;
+        spi_xfer[i].speed_hz = 0;
+        spi_xfer[i].delay_usecs = msgs[i].deselect_delay_us;
+        spi_xfer[i].bits_per_word = 0;
+        spi_xfer[i].cs_change = msgs[i].deselect;
+        #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+        spi_xfer[i].word_delay_usecs = msgs[i].word_delay_us;
+        #endif
+    }
+
+    /* Transfer */
+    if (ioctl(spi->fd, SPI_IOC_MESSAGE(count), spi_xfer) < 0)
         return _spi_error(spi, SPI_ERROR_TRANSFER, errno, "SPI transfer");
 
     return 0;

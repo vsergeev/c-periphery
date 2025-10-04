@@ -15,6 +15,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
 int spi_open_advanced2(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed,
                        spi_bit_order_t bit_order, uint8_t bits_per_word, uint32_t extra_flags);
 int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len);
+int spi_transfer_advanced(spi_t *spi, const spi_msg_t *msgs, size_t count);
 int spi_close(spi_t *spi);
 void spi_free(spi_t *spi);
 
@@ -99,6 +100,30 @@ Returns 0 on success, or a negative [SPI error code](#return-value) on failure.
 int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len);
 ```
 Shift out `len` word counts of the `txbuf` buffer, while shifting in `len` word counts to the `rxbuf` buffer.
+
+`spi` should be a valid pointer to an SPI handle opened with `spi_open()` or `spi_open_advanced()`.
+
+`rxbuf` may be NULL. `txbuf` and `rxbuf` may point to the same buffer.
+
+Returns 0 on success, or a negative [SPI error code](#return-value) on failure.
+
+------
+
+``` c
+typedef struct spi_msg {
+    const uint8_t *txbuf;
+    uint8_t *rxbuf;
+    size_t len;
+    bool deselect;
+    uint16_t deselect_delay_us;
+    uint8_t word_delay_us;
+} spi_msg_t;
+
+int spi_transfer_advanced(spi_t *spi, const spi_msg_t *msgs, size_t count);
+```
+Transfer messages, shifting out `len` word counts of the `txbuf` buffer, while shifting in `len` word counts to the `rxbuf` buffer for each message. If `deselect` is true, deselect the device before reselecting it for the following transfer.
+
+`deselect_delay_us` specifies a delay in microseconds before deselection when `deselect` is true. `word_delay_us` specifies a delay in microseconds between words within a transfer. Note that `deselect_delay_us` and `word_delay_us` may not by supported by all SPI controllers and may be silently ignored.
 
 `spi` should be a valid pointer to an SPI handle opened with `spi_open()` or `spi_open_advanced()`.
 
