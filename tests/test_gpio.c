@@ -41,6 +41,7 @@ void test_open_config_close(void) {
     bool value;
     gpio_direction_t direction;
     gpio_edge_t edge;
+    gpio_event_clock_t event_clock;
     char label[32];
     gpio_bias_t bias;
     gpio_drive_t drive;
@@ -72,6 +73,8 @@ void test_open_config_close(void) {
     passert(gpio_set_direction(gpio, 5) == GPIO_ERROR_ARG);
     /* Invalid interrupt edge */
     passert(gpio_set_edge(gpio, 5) == GPIO_ERROR_ARG);
+    /* Invalid event clock */
+    passert(gpio_set_event_clock(gpio, 5) == GPIO_ERROR_ARG);
     /* Invalid bias */
     passert(gpio_set_bias(gpio, 5) == GPIO_ERROR_ARG);
     /* Invalid drive */
@@ -120,6 +123,8 @@ void test_open_config_close(void) {
 
     /* Attempt to set interrupt edge on output GPIO */
     passert(gpio_set_edge(gpio, GPIO_EDGE_RISING) == GPIO_ERROR_INVALID_OPERATION);
+    /* Attempt to set event clock on output GPIO */
+    passert(gpio_set_event_clock(gpio, GPIO_EVENT_CLOCK_HTE) == GPIO_ERROR_INVALID_OPERATION);
     /* Attempt to read event on output GPIO */
     passert(gpio_read_event(gpio, &edge, NULL) == GPIO_ERROR_INVALID_OPERATION);
 
@@ -145,10 +150,15 @@ void test_open_config_close(void) {
     passert(gpio_set_edge(gpio, GPIO_EDGE_BOTH) == 0);
     passert(gpio_get_edge(gpio, &edge) == 0);
     passert(edge == GPIO_EDGE_BOTH);
-    /* Set edge none, check edge none */
-    passert(gpio_set_edge(gpio, GPIO_EDGE_NONE) == 0);
-    passert(gpio_get_edge(gpio, &edge) == 0);
-    passert(edge == GPIO_EDGE_NONE);
+
+    /* Set event clock realtime, check event clock realtime */
+    passert(gpio_set_event_clock(gpio, GPIO_EVENT_CLOCK_REALTIME) == 0);
+    passert(gpio_get_event_clock(gpio, &event_clock) == 0);
+    passert(event_clock == GPIO_EVENT_CLOCK_REALTIME);
+    /* Set event clock monotonic, check event clock monotonic */
+    passert(gpio_set_event_clock(gpio, GPIO_EVENT_CLOCK_MONOTONIC) == 0);
+    passert(gpio_get_event_clock(gpio, &event_clock) == 0);
+    passert(event_clock == GPIO_EVENT_CLOCK_MONOTONIC);
 
     /* Set bias pull up, check bias pull up */
     passert(gpio_set_bias(gpio, GPIO_BIAS_PULL_UP) == 0);
@@ -383,46 +393,79 @@ bool getc_yes(void) {
 }
 
 void test_interactive(void) {
+    gpio_t *gpio_in, *gpio_out;
     char str[256];
-    gpio_t *gpio;
+    gpio_edge_t edge;
+    uint64_t timestamp;
 
     ptest();
 
     /* Allocate GPIO */
-    gpio = gpio_new();
-    passert(gpio != NULL);
+    gpio_out = gpio_new();
+    passert(gpio_out != NULL);
+    gpio_in = gpio_new();
+    passert(gpio_in != NULL);
 
-    passert(gpio_open(gpio, device, pin_output, GPIO_DIR_OUT) == 0);
+    /* Open output pin */
+    passert(gpio_open(gpio_out, device, pin_output, GPIO_DIR_OUT) == 0);
 
     printf("Starting interactive test. Get out your multimeter, buddy!\n");
     printf("Press enter to continue...\n");
     getc(stdin);
 
     /* Check tostring */
-    passert(gpio_tostring(gpio, str, sizeof(str)) > 0);
+    passert(gpio_tostring(gpio_out, str, sizeof(str)) > 0);
     printf("GPIO description: %s\n", str);
     printf("GPIO description looks OK? y/n\n");
     passert(getc_yes());
 
     /* Drive GPIO out low */
-    passert(gpio_write(gpio, false) == 0);
+    passert(gpio_write(gpio_out, false) == 0);
     printf("GPIO out is low? y/n\n");
     passert(getc_yes());
 
     /* Drive GPIO out high */
-    passert(gpio_write(gpio, true) == 0);
+    passert(gpio_write(gpio_out, true) == 0);
     printf("GPIO out is high? y/n\n");
     passert(getc_yes());
 
     /* Drive GPIO out low */
-    passert(gpio_write(gpio, false) == 0);
+    passert(gpio_write(gpio_out, false) == 0);
     printf("GPIO out is low? y/n\n");
     passert(getc_yes());
 
-    passert(gpio_close(gpio) == 0);
+    /* Open input pin */
+    passert(gpio_open(gpio_in, device, pin_input, GPIO_DIR_IN) == 0);
+
+    /* Set both edge and realtime event clock */
+    passert(gpio_set_edge(gpio_in, GPIO_EDGE_BOTH) == 0);
+    passert(gpio_set_event_clock(gpio_in, GPIO_EVENT_CLOCK_REALTIME) == 0);
+
+    /* Read line event with realtime event clock */
+    printf("Driving GPIO out high and reading GPIO in line event...");
+    passert(gpio_write(gpio_out, true) == 0);
+    passert(gpio_read_event(gpio_in, &edge, &timestamp) == 0);
+    passert(edge == GPIO_EDGE_RISING);
+    printf("Line event timestamp %zu is realtime? y/n\n", timestamp);
+    passert(getc_yes());
+
+    /* Set monotonic event clock */
+    passert(gpio_set_event_clock(gpio_in, GPIO_EVENT_CLOCK_MONOTONIC) == 0);
+
+    /* Read line event with monotonic event clock */
+    printf("Driving GPIO out low and reading GPIO in line event...");
+    passert(gpio_write(gpio_out, false) == 0);
+    passert(gpio_read_event(gpio_in, &edge, &timestamp) == 0);
+    passert(edge == GPIO_EDGE_FALLING);
+    printf("Line event timestamp %zu is monotonic? y/n\n", timestamp);
+    passert(getc_yes());
+
+    passert(gpio_close(gpio_in) == 0);
+    passert(gpio_close(gpio_out) == 0);
 
     /* Free GPIO */
-    gpio_free(gpio);
+    gpio_free(gpio_out);
+    gpio_free(gpio_in);
 }
 
 int main(int argc, char *argv[]) {
