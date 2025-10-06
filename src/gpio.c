@@ -111,6 +111,10 @@ int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     return gpio->ops->get_edge(gpio, edge);
 }
 
+int gpio_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_clock) {
+    return gpio->ops->get_event_clock(gpio, event_clock);
+}
+
 int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
     return gpio->ops->get_bias(gpio, bias);
 }
@@ -129,6 +133,10 @@ int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction) {
 
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     return gpio->ops->set_edge(gpio, edge);
+}
+
+int gpio_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_clock) {
+    return gpio->ops->set_event_clock(gpio, event_clock);
 }
 
 int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias) {

@@ -116,6 +116,7 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
 
     gpio->u.cdev.direction = (direction == GPIO_DIR_IN) ? GPIO_DIR_IN : GPIO_DIR_OUT;
     gpio->u.cdev.edge = edge;
+    gpio->u.cdev.event_clock = GPIO_EVENT_CLOCK_REALTIME;
     gpio->u.cdev.bias = bias;
     gpio->u.cdev.drive = drive;
     gpio->u.cdev.inverted = inverted;
@@ -216,6 +217,11 @@ static int gpio_cdev_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     return 0;
 }
 
+static int gpio_cdev_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_clock) {
+    *event_clock = gpio->u.cdev.event_clock;
+    return 0;
+}
+
 static int gpio_cdev_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
     *bias = gpio->u.cdev.bias;
     return 0;
@@ -252,6 +258,13 @@ static int gpio_cdev_set_edge(gpio_t *gpio, gpio_edge_t edge) {
         return 0;
 
     return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, edge, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
+}
+
+static int gpio_cdev_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_clock) {
+    if (event_clock != GPIO_EVENT_CLOCK_REALTIME)
+        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring event clock");
+
+    return 0;
 }
 
 static int gpio_cdev_set_bias(gpio_t *gpio, gpio_bias_t bias) {
@@ -446,11 +459,13 @@ const struct gpio_ops gpio_cdev_ops = {
     .close = gpio_cdev_close,
     .get_direction = gpio_cdev_get_direction,
     .get_edge = gpio_cdev_get_edge,
+    .get_event_clock = gpio_cdev_get_event_clock,
     .get_bias = gpio_cdev_get_bias,
     .get_drive = gpio_cdev_get_drive,
     .get_inverted = gpio_cdev_get_inverted,
     .set_direction = gpio_cdev_set_direction,
     .set_edge = gpio_cdev_set_edge,
+    .set_event_clock = gpio_cdev_set_event_clock,
     .set_bias = gpio_cdev_set_bias,
     .set_drive = gpio_cdev_set_drive,
     .set_inverted = gpio_cdev_set_inverted,
@@ -484,6 +499,9 @@ int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const 
 
     if (config->direction == GPIO_DIR_IN && config->drive != GPIO_DRIVE_DEFAULT)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO line drive for input GPIO");
+
+    if (config->event_clock != GPIO_EVENT_CLOCK_REALTIME)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Kernel version does not support configuring event clock");
 
     /* Open GPIO chip */
     if ((fd = open(path, 0)) < 0)

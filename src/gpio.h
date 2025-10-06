@@ -41,6 +41,12 @@ typedef enum gpio_edge {
     GPIO_EDGE_BOTH      /* Both edges X -> !X */
 } gpio_edge_t;
 
+typedef enum gpio_event_clock {
+    GPIO_EVENT_CLOCK_REALTIME,  /* Realtime */
+    GPIO_EVENT_CLOCK_MONOTONIC, /* Monotonic */
+    GPIO_EVENT_CLOCK_HTE        /* Hardware Timestamping Engine */
+} gpio_event_clock_t;
+
 typedef enum gpio_bias {
     GPIO_BIAS_DEFAULT,      /* Default line bias */
     GPIO_BIAS_PULL_UP,      /* Pull-up */
@@ -58,6 +64,7 @@ typedef enum gpio_drive {
 typedef struct gpio_config {
     gpio_direction_t direction;
     gpio_edge_t edge;
+    gpio_event_clock_t event_clock;
     gpio_bias_t bias;
     gpio_drive_t drive;
     bool inverted;
@@ -88,6 +95,7 @@ int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios
 /* Getters */
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
+int gpio_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_clock);
 int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias);
 int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive);
 int gpio_get_inverted(gpio_t *gpio, bool *inverted);
@@ -95,6 +103,7 @@ int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 /* Setters */
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
+int gpio_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_clock);
 int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias);
 int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
 int gpio_set_inverted(gpio_t *gpio, bool inverted);

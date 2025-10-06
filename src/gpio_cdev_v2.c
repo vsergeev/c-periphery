@@ -19,6 +19,7 @@
 
 #if PERIPHERY_GPIO_CDEV_SUPPORT == 2
 #include <linux/gpio.h>
+#include <linux/version.h>
 #endif
 
 /*********************************************************************************/
@@ -27,8 +28,13 @@
 
 #if PERIPHERY_GPIO_CDEV_SUPPORT == 2
 
-static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge, gpio_bias_t bias, gpio_drive_t drive, bool inverted) {
+static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge, gpio_event_clock_t event_clock, gpio_bias_t bias, gpio_drive_t drive, bool inverted) {
     uint32_t flags = 0;
+
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 19, 0)
+    if (event_clock == GPIO_EVENT_CLOCK_HTE)
+        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support GPIO event clock HTE");
+    #endif
 
     if (bias == GPIO_BIAS_PULL_UP)
         flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_UP;
@@ -63,7 +69,14 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
         flags |= (edge == GPIO_EDGE_RISING) ? GPIO_V2_LINE_FLAG_EDGE_RISING :
                  (edge == GPIO_EDGE_FALLING) ? GPIO_V2_LINE_FLAG_EDGE_FALLING :
                  (edge == GPIO_EDGE_BOTH) ? (GPIO_V2_LINE_FLAG_EDGE_RISING | GPIO_V2_LINE_FLAG_EDGE_FALLING) : 0;
-        flags |= (edge != GPIO_EDGE_NONE) ? GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME : 0;
+        flags |= (edge != GPIO_EDGE_NONE) ?
+                    (event_clock == GPIO_EVENT_CLOCK_REALTIME) ? GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME :
+                    #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
+                    (event_clock == GPIO_EVENT_CLOCK_HTE) ? GPIO_V2_LINE_FLAG_EVENT_CLOCK_HTE : 0
+                    #else
+                    0
+                    #endif
+                  : 0;
 
         line_request.offsets[0] = gpio->u.cdev.line;
         strncpy(line_request.consumer, gpio->u.cdev.label, sizeof(line_request.consumer) - 1);
@@ -101,6 +114,7 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
 
     gpio->u.cdev.direction = (direction == GPIO_DIR_IN) ? GPIO_DIR_IN : GPIO_DIR_OUT;
     gpio->u.cdev.edge = edge;
+    gpio->u.cdev.event_clock = event_clock;
     gpio->u.cdev.bias = bias;
     gpio->u.cdev.drive = drive;
     gpio->u.cdev.inverted = inverted;
@@ -201,6 +215,11 @@ static int gpio_cdev_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     return 0;
 }
 
+static int gpio_cdev_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_clock) {
+    *event_clock = gpio->u.cdev.event_clock;
+    return 0;
+}
+
 static int gpio_cdev_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
     *bias = gpio->u.cdev.bias;
     return 0;
@@ -223,7 +242,7 @@ static int gpio_cdev_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     if (gpio->u.cdev.direction == direction)
         return 0;
 
-    return _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
+    return _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE, gpio->u.cdev.event_clock, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
 }
 
 static int gpio_cdev_set_edge(gpio_t *gpio, gpio_edge_t edge) {
@@ -236,7 +255,20 @@ static int gpio_cdev_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     if (gpio->u.cdev.edge == edge)
         return 0;
 
-    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, edge, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, edge, gpio->u.cdev.event_clock, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
+}
+
+static int gpio_cdev_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_clock) {
+    if (event_clock != GPIO_EVENT_CLOCK_REALTIME && event_clock != GPIO_EVENT_CLOCK_MONOTONIC && event_clock != GPIO_EVENT_CLOCK_HTE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO event clock (can be realtime, monotonic, hte)");
+
+    if (gpio->u.cdev.direction != GPIO_DIR_IN)
+        return _gpio_error(gpio, GPIO_ERROR_INVALID_OPERATION, 0, "Invalid operation: cannot set event clock on output GPIO");
+
+    if (gpio->u.cdev.event_clock == event_clock)
+        return 0;
+
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, event_clock, gpio->u.cdev.bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
 }
 
 static int gpio_cdev_set_bias(gpio_t *gpio, gpio_bias_t bias) {
@@ -246,7 +278,7 @@ static int gpio_cdev_set_bias(gpio_t *gpio, gpio_bias_t bias) {
     if (gpio->u.cdev.bias == bias)
         return 0;
 
-    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, gpio->u.cdev.event_clock, bias, gpio->u.cdev.drive, gpio->u.cdev.inverted);
 }
 
 static int gpio_cdev_set_drive(gpio_t *gpio, gpio_drive_t drive) {
@@ -259,14 +291,14 @@ static int gpio_cdev_set_drive(gpio_t *gpio, gpio_drive_t drive) {
     if (gpio->u.cdev.drive == drive)
         return 0;
 
-    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, gpio->u.cdev.bias, drive, gpio->u.cdev.inverted);
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, gpio->u.cdev.event_clock, gpio->u.cdev.bias, drive, gpio->u.cdev.inverted);
 }
 
 static int gpio_cdev_set_inverted(gpio_t *gpio, bool inverted) {
     if (gpio->u.cdev.inverted == inverted)
         return 0;
 
-    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, gpio->u.cdev.bias, gpio->u.cdev.drive, inverted);
+    return _gpio_cdev_reopen(gpio, gpio->u.cdev.direction, gpio->u.cdev.edge, gpio->u.cdev.event_clock, gpio->u.cdev.bias, gpio->u.cdev.drive, inverted);
 }
 
 static unsigned int gpio_cdev_line(gpio_t *gpio) {
@@ -350,6 +382,8 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     const char *direction_str;
     gpio_edge_t edge;
     const char *edge_str;
+    gpio_event_clock_t event_clock;
+    const char *event_clock_str;
     gpio_bias_t bias;
     const char *bias_str;
     gpio_drive_t drive;
@@ -378,6 +412,13 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
                    (edge == GPIO_EDGE_RISING) ? "rising" :
                    (edge == GPIO_EDGE_FALLING) ? "falling" :
                    (edge == GPIO_EDGE_BOTH) ? "both" : "unknown";
+
+    if (gpio_cdev_get_event_clock(gpio, &event_clock) < 0)
+        event_clock_str = "<error>";
+    else
+        event_clock_str = (event_clock == GPIO_EVENT_CLOCK_REALTIME) ? "realtime" :
+                          (event_clock == GPIO_EVENT_CLOCK_MONOTONIC) ? "monotonic" :
+                          (event_clock == GPIO_EVENT_CLOCK_HTE) ? "hte" : "unknown";
 
     if (gpio_cdev_get_bias(gpio, &bias) < 0)
         bias_str = "<error>";
@@ -419,8 +460,8 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
     else
         chip_label_str = chip_label;
 
-    return snprintf(str, len, "GPIO %u (name=\"%s\", label=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, bias=%s, drive=%s, inverted=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
-                    gpio->u.cdev.line, line_name_str, line_label_str, gpio->u.cdev.line_fd, gpio->u.cdev.chip_fd, direction_str, edge_str, bias_str, drive_str, inverted_str, chip_name_str, chip_label_str);
+    return snprintf(str, len, "GPIO %u (name=\"%s\", label=\"%s\", line_fd=%d, chip_fd=%d, direction=%s, edge=%s, event_clock=%s, bias=%s, drive=%s, inverted=%s, chip_name=\"%s\", chip_label=\"%s\", type=cdev)",
+                    gpio->u.cdev.line, line_name_str, line_label_str, gpio->u.cdev.line_fd, gpio->u.cdev.chip_fd, direction_str, edge_str, event_clock_str, bias_str, drive_str, inverted_str, chip_name_str, chip_label_str);
 }
 
 const struct gpio_ops gpio_cdev_ops = {
@@ -431,11 +472,13 @@ const struct gpio_ops gpio_cdev_ops = {
     .close = gpio_cdev_close,
     .get_direction = gpio_cdev_get_direction,
     .get_edge = gpio_cdev_get_edge,
+    .get_event_clock = gpio_cdev_get_event_clock,
     .get_bias = gpio_cdev_get_bias,
     .get_drive = gpio_cdev_get_drive,
     .get_inverted = gpio_cdev_get_inverted,
     .set_direction = gpio_cdev_set_direction,
     .set_edge = gpio_cdev_set_edge,
+    .set_event_clock = gpio_cdev_set_event_clock,
     .set_bias = gpio_cdev_set_bias,
     .set_drive = gpio_cdev_set_drive,
     .set_inverted = gpio_cdev_set_inverted,
@@ -457,6 +500,9 @@ int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const 
 
     if (config->edge != GPIO_EDGE_NONE && config->edge != GPIO_EDGE_RISING && config->edge != GPIO_EDGE_FALLING && config->edge != GPIO_EDGE_BOTH)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO interrupt edge (can be none, rising, falling, both)");
+
+    if (config->event_clock != GPIO_EVENT_CLOCK_REALTIME && config->event_clock != GPIO_EVENT_CLOCK_MONOTONIC && config->event_clock != GPIO_EVENT_CLOCK_HTE)
+        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO event clock (can be realtime, monotonic, hte)");
 
     if (config->direction != GPIO_DIR_IN && config->edge != GPIO_EDGE_NONE)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO edge for output GPIO");
@@ -483,7 +529,7 @@ int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const 
     gpio->u.cdev.label[sizeof(gpio->u.cdev.label) - 1] = '\0';
 
     /* Open GPIO line */
-    ret = _gpio_cdev_reopen(gpio, config->direction, config->edge, config->bias, config->drive, config->inverted);
+    ret = _gpio_cdev_reopen(gpio, config->direction, config->edge, config->event_clock, config->bias, config->drive, config->inverted);
     if (ret < 0) {
         close(gpio->u.cdev.chip_fd);
         gpio->u.cdev.chip_fd = -1;
