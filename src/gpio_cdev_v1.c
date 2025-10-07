@@ -222,6 +222,11 @@ static int gpio_cdev_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_clo
     return 0;
 }
 
+static int gpio_cdev_get_debounce_us(gpio_t *gpio, uint32_t *debounce_us) {
+    *debounce_us = gpio->u.cdev.debounce_us;
+    return 0;
+}
+
 static int gpio_cdev_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
     *bias = gpio->u.cdev.bias;
     return 0;
@@ -265,6 +270,11 @@ static int gpio_cdev_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_cloc
         return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring event clock");
 
     return 0;
+}
+
+static int gpio_cdev_set_debounce_us(gpio_t *gpio, uint32_t debounce_us) {
+    (void)debounce_us;
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring debounce");
 }
 
 static int gpio_cdev_set_bias(gpio_t *gpio, gpio_bias_t bias) {
@@ -460,12 +470,14 @@ const struct gpio_ops gpio_cdev_ops = {
     .get_direction = gpio_cdev_get_direction,
     .get_edge = gpio_cdev_get_edge,
     .get_event_clock = gpio_cdev_get_event_clock,
+    .get_debounce_us = gpio_cdev_get_debounce_us,
     .get_bias = gpio_cdev_get_bias,
     .get_drive = gpio_cdev_get_drive,
     .get_inverted = gpio_cdev_get_inverted,
     .set_direction = gpio_cdev_set_direction,
     .set_edge = gpio_cdev_set_edge,
     .set_event_clock = gpio_cdev_set_event_clock,
+    .set_debounce_us = gpio_cdev_set_debounce_us,
     .set_bias = gpio_cdev_set_bias,
     .set_drive = gpio_cdev_set_drive,
     .set_inverted = gpio_cdev_set_inverted,
@@ -502,6 +514,9 @@ int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const 
 
     if (config->event_clock != GPIO_EVENT_CLOCK_REALTIME)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Kernel version does not support configuring event clock");
+
+    if (config->debounce_us != 0)
+        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring debounce");
 
     /* Open GPIO chip */
     if ((fd = open(path, 0)) < 0)

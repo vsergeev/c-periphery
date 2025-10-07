@@ -24,12 +24,14 @@ struct gpio_ops {
     int (*get_direction)(gpio_t *gpio, gpio_direction_t *direction);
     int (*get_edge)(gpio_t *gpio, gpio_edge_t *edge);
     int (*get_event_clock)(gpio_t *gpio, gpio_event_clock_t *event_clock);
+    int (*get_debounce_us)(gpio_t *gpio, uint32_t *debounce_us);
     int (*get_bias)(gpio_t *gpio, gpio_bias_t *bias);
     int (*get_drive)(gpio_t *gpio, gpio_drive_t *drive);
     int (*get_inverted)(gpio_t *gpio, bool *inverted);
     int (*set_direction)(gpio_t *gpio, gpio_direction_t direction);
     int (*set_edge)(gpio_t *gpio, gpio_edge_t edge);
     int (*set_event_clock)(gpio_t *gpio, gpio_event_clock_t event_clock);
+    int (*set_debounce_us)(gpio_t *gpio, uint32_t debounce_us);
     int (*set_bias)(gpio_t *gpio, gpio_bias_t bias);
     int (*set_drive)(gpio_t *gpio, gpio_drive_t drive);
     int (*set_inverted)(gpio_t *gpio, bool inverted);
@@ -54,6 +56,7 @@ struct gpio_handle {
             gpio_direction_t direction;
             gpio_edge_t edge;
             gpio_event_clock_t event_clock;
+            uint32_t debounce_us;
             gpio_bias_t bias;
             gpio_drive_t drive;
             bool inverted;

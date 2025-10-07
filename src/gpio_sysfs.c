@@ -275,6 +275,16 @@ static int gpio_sysfs_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_cl
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support event clock configuration");
 }
 
+static int gpio_sysfs_set_debounce_us(gpio_t *gpio, uint32_t debounce_us) {
+    (void)debounce_us;
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support debounce attribute");
+}
+
+static int gpio_sysfs_get_debounce_us(gpio_t *gpio, uint32_t *debounce_us) {
+    (void)debounce_us;
+    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support debounce attribute");
+}
+
 static int gpio_sysfs_set_bias(gpio_t *gpio, gpio_bias_t bias) {
     (void)bias;
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support line bias attribute");
@@ -492,12 +502,14 @@ const struct gpio_ops gpio_sysfs_ops = {
     .get_direction = gpio_sysfs_get_direction,
     .get_edge = gpio_sysfs_get_edge,
     .get_event_clock = gpio_sysfs_get_event_clock,
+    .get_debounce_us = gpio_sysfs_get_debounce_us,
     .get_bias = gpio_sysfs_get_bias,
     .get_drive = gpio_sysfs_get_drive,
     .get_inverted = gpio_sysfs_get_inverted,
     .set_direction = gpio_sysfs_set_direction,
     .set_edge = gpio_sysfs_set_edge,
     .set_event_clock = gpio_sysfs_set_event_clock,
+    .set_debounce_us = gpio_sysfs_set_debounce_us,
     .set_bias = gpio_sysfs_set_bias,
     .set_drive = gpio_sysfs_set_drive,
     .set_inverted = gpio_sysfs_set_inverted,

@@ -32,6 +32,7 @@ int gpio_poll_multiple(gpio_t **gpios, size_t count, int timeout_ms, bool *gpios
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
 int gpio_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_clock);
+int gpio_get_debounce_us(gpio_t *gpio, uint32_t *debounce_us);
 int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias);
 int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive);
 int gpio_get_inverted(gpio_t *gpio, bool *inverted);
@@ -40,6 +41,7 @@ int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
 int gpio_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_clock);
+int gpio_set_debounce_us(gpio_t *gpio, uint32_t *debounce_us);
 int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias);
 int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
 int gpio_set_inverted(gpio_t *gpio, bool inverted);
@@ -127,6 +129,7 @@ typedef struct gpio_config {
     gpio_direction_t direction;
     gpio_edge_t edge;
     gpio_event_clock_t event_clock;
+    uint32_t debounce_us;
     gpio_bias_t bias;
     gpio_drive_t drive;
     bool inverted;
@@ -148,6 +151,7 @@ typedef struct gpio_config {
     gpio_direction_t direction;
     gpio_edge_t edge;
     gpio_event_clock_t event_clock;
+    uint32_t debounce_us;
     gpio_bias_t bias;
     gpio_drive_t drive;
     bool inverted;
@@ -259,11 +263,12 @@ Free a GPIO handle.
 int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
 int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
 int gpio_get_event_clock(gpio_t *gpio, gpio_event_clock_t *event_clock);
+int gpio_get_debounce_us(gpio_t *gpio, uint32_t *debounce_us);
 int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias);
 int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive);
 int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 ```
-Get the configured direction, interrupt edge, event clock, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
+Get the configured direction, interrupt edge, event clock, debounce period properties, line bias, line drive, inverted (active low), respectively, of the GPIO.
 
 Line bias and line drive properties are not supported by sysfs GPIOs.
 
@@ -277,11 +282,12 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
 int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
 int gpio_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_clock);
+int gpio_set_debounce_us(gpio_t *gpio, uint32_t debounce_us);
 int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias);
 int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
 int gpio_set_inverted(gpio_t *gpio, bool inverted);
 ```
-Set the direction, interrupt edge, event clock, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
+Set the direction, interrupt edge, event clock, debounce period properties, line bias, line drive, inverted (active low), respectively, of the GPIO.
 
 Line bias and line drive properties are not supported by sysfs GPIOs.
 

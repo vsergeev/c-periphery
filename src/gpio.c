@@ -119,6 +119,10 @@ int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias) {
     return gpio->ops->get_bias(gpio, bias);
 }
 
+int gpio_get_debounce_us(gpio_t *gpio, uint32_t *debounce_us) {
+    return gpio->ops->get_debounce_us(gpio, debounce_us);
+}
+
 int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive) {
     return gpio->ops->get_drive(gpio, drive);
 }
@@ -141,6 +145,10 @@ int gpio_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_clock) {
 
 int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias) {
     return gpio->ops->set_bias(gpio, bias);
+}
+
+int gpio_set_debounce_us(gpio_t *gpio, uint32_t debounce_us) {
+    return gpio->ops->set_debounce_us(gpio, debounce_us);
 }
 
 int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive) {
