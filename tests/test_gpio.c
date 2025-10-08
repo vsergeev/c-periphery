@@ -46,6 +46,7 @@ void test_open_config_close(void) {
     gpio_bias_t bias;
     gpio_drive_t drive;
     bool inverted;
+    uint32_t debounce_us;
 
     ptest();
 
@@ -125,6 +126,8 @@ void test_open_config_close(void) {
     passert(gpio_set_edge(gpio, GPIO_EDGE_RISING) == GPIO_ERROR_INVALID_OPERATION);
     /* Attempt to set event clock on output GPIO */
     passert(gpio_set_event_clock(gpio, GPIO_EVENT_CLOCK_HTE) == GPIO_ERROR_INVALID_OPERATION);
+    /* Attempt to set debounce on output gpio */
+    passert(gpio_set_debounce_us(gpio, 10) == GPIO_ERROR_INVALID_OPERATION);
     /* Attempt to read event on output GPIO */
     passert(gpio_read_event(gpio, &edge, NULL) == GPIO_ERROR_INVALID_OPERATION);
 
@@ -159,6 +162,15 @@ void test_open_config_close(void) {
     passert(gpio_set_event_clock(gpio, GPIO_EVENT_CLOCK_MONOTONIC) == 0);
     passert(gpio_get_event_clock(gpio, &event_clock) == 0);
     passert(event_clock == GPIO_EVENT_CLOCK_MONOTONIC);
+
+    /* Set debounce period, check debounce period */
+    passert(gpio_set_debounce_us(gpio, 10) == 0);
+    passert(gpio_get_debounce_us(gpio, &debounce_us) == 0);
+    passert(debounce_us == 10);
+    /* Disable debounce period, check debounce period */
+    passert(gpio_set_debounce_us(gpio, 0) == 0);
+    passert(gpio_get_debounce_us(gpio, &debounce_us) == 0);
+    passert(debounce_us == 0);
 
     /* Set bias pull up, check bias pull up */
     passert(gpio_set_bias(gpio, GPIO_BIAS_PULL_UP) == 0);
