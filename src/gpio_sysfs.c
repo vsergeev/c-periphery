@@ -174,16 +174,16 @@ static int gpio_sysfs_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'direction'");
 
-    if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+    if ((ret = read(fd, buf, sizeof(buf) - 1)) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'direction'");
     }
 
+    buf[ret] = '\0';
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'direction'");
-
-    buf[ret] = '\0';
 
     if (strcmp(buf, "in\n") == 0)
         *direction = GPIO_DIR_IN;
@@ -240,16 +240,16 @@ static int gpio_sysfs_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'edge'");
 
-    if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+    if ((ret = read(fd, buf, sizeof(buf) - 1)) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'edge'");
     }
 
+    buf[ret] = '\0';
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'edge'");
-
-    buf[ret] = '\0';
 
     if (strcmp(buf, "none\n") == 0)
         *edge = GPIO_EDGE_NONE;
@@ -339,7 +339,7 @@ static int gpio_sysfs_get_inverted(gpio_t *gpio, bool *inverted) {
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO 'active_low'");
 
-    if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+    if ((ret = read(fd, buf, sizeof(buf) - 1)) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO 'active_low'");
@@ -347,8 +347,6 @@ static int gpio_sysfs_get_inverted(gpio_t *gpio, bool *inverted) {
 
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'active_low'");
-
-    buf[ret] = '\0';
 
     if (buf[0] == '0')
         *inverted = false;
@@ -434,16 +432,16 @@ static int gpio_sysfs_chip_label(gpio_t *gpio, char *str, size_t len) {
     if ((fd = open(gpio_path, O_RDONLY)) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Opening GPIO chip 'label'");
 
-    if ((ret = read(fd, str, len)) < 0) {
+    if ((ret = read(fd, str, len - 1)) < 0) {
         int errsv = errno;
         close(fd);
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errsv, "Reading GPIO chip 'label'");
     }
 
+    str[ret] = '\0';
+
     if (close(fd) < 0)
         return _gpio_error(gpio, GPIO_ERROR_QUERY, errno, "Closing GPIO 'label'");
-
-    str[ret - 1] = '\0';
 
     return 0;
 }
