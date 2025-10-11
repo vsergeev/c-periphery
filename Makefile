@@ -1,4 +1,9 @@
-LIB = periphery.a
+VERSION = 2.4.3
+SO_VERSION = 2.4
+
+STATIC_LIB = periphery.a
+SHARED_LIB = libperiphery.so
+
 SRCS = src/gpio.c src/gpio_cdev_v2.c src/gpio_cdev_v1.c src/gpio_sysfs.c src/led.c src/pwm.c src/spi.c src/i2c.c src/mmio.c src/serial.c src/version.c
 
 SRCDIR = src
@@ -32,19 +37,22 @@ endif
 ###########################################################################
 
 .PHONY: all
-all: $(LIB)
+all: $(STATIC_LIB)
+
+.PHONY: shared
+shared: $(SHARED_LIB)
 
 .PHONY: tests
 tests: $(TEST_PROGRAMS)
 
 .PHONY: clean
 clean:
-	rm -rf $(LIB) $(OBJDIR) $(TEST_PROGRAMS)
+	rm -rf $(STATIC_LIB) $(SHARED_LIB) $(SHARED_LIB).$(SO_VERSION) $(SHARED_LIB).$(VERSION) $(OBJDIR) $(TEST_PROGRAMS)
 
 ###########################################################################
 
-tests/%: tests/%.c $(LIB)
-	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIB) -o $@ -lpthread
+tests/%: tests/%.c $(STATIC_LIB)
+	$(CC) $(CFLAGS) $(LDFLAGS) $< $(STATIC_LIB) -o $@ -lpthread
 
 ###########################################################################
 
@@ -53,9 +61,13 @@ $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
 	mkdir $(OBJDIR)
 
-$(LIB): $(OBJECTS)
-	$(AR) rcs $(LIB) $(OBJECTS)
+$(STATIC_LIB): $(OBJECTS)
+	$(AR) rcs $(STATIC_LIB) $(OBJECTS)
+
+$(SHARED_LIB): $(OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -Wl,-soname,$(SHARED_LIB).$(SO_VERSION) -o $(SHARED_LIB).$(VERSION) $(OBJECTS)
+	ln -s $(SHARED_LIB).$(VERSION) $(SHARED_LIB).$(SO_VERSION)
+	ln -s $(SHARED_LIB).$(SO_VERSION) $(SHARED_LIB)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
-

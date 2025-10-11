@@ -1,6 +1,7 @@
 *.swp
 obj/
 *.a
+*.so*
 *.sh
 tests/*
 !tests/*.c
