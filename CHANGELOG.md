@@ -1,3 +1,21 @@
+* v2.5.0 - 11/02/2025
+    * MMIO
+        * Add `read64()` and `write64()` APIs.
+    * SPI
+        * Add `spi_transfer_advanced()` API for transferring multiple messages,
+          with optional deselect between messages, deselect delay, and word
+          delay.
+    * GPIO
+        * Add open configuration, getters, and setters for event clock.
+        * Add open configuration, getters, and setters for debounce period.
+    * LED
+        * Add getter and setter for trigger.
+        * Add `led_get_triggers_entry()` and `led_get_triggers_count()` APIs
+          for querying triggers list.
+    * Build
+        * Add shared library target to Makefile.
+        * Use <major>.<minor> for shared library SONAME under CMake.
+
 * v2.4.3 - 02/28/2025
     * Fix memory safety with some older `strerror_r()` implementations in error
       formatters for all modules.
