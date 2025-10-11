@@ -18,9 +18,13 @@ void led_free(led_t *led);
 /* Getters */
 int led_get_brightness(led_t *led, unsigned int *brightness);
 int led_get_max_brightness(led_t *led, unsigned int *max_brightness);
+int led_get_trigger(led_t *led, char *str, size_t len);
+int led_get_triggers_entry(led_t *led, unsigned int index, char *str, size_t len);
+int led_get_triggers_count(led_t *led, unsigned int *count);
 
 /* Setters */
 int led_set_brightness(led_t *led, unsigned int brightness);
+int led_set_trigger(led_t *led, const char *trigger);
 
 /* Miscellaneous */
 int led_name(led_t *led, char *str, size_t len);
@@ -116,11 +120,56 @@ Returns 0 on success, or a negative [LED error code](#return-value) on failure.
 ------
 
 ``` c
+int led_get_trigger(led_t *led, char *str, size_t len);
+```
+Get the active trigger for the LED.
+
+`led` should be a valid pointer to an LED handle opened with `led_open()`.
+
+Returns 0 on success, or a negative [LED error code](#return-value) on failure.
+
+------
+
+``` c
+int led_get_triggers_entry(led_t *led, unsigned int index, char *str, size_t len);
+```
+Get the trigger name at position `index` of triggers available for the LED.
+
+`led` should be a valid pointer to an LED handle opened with `led_open()`.
+
+Returns 0 on success, or a negative [LED error code](#return-value) on failure.
+
+------
+
+``` c
+int led_get_triggers_count(led_t *led, unsigned int *count);
+```
+Get the count of triggers available for the LED.
+
+`led` should be a valid pointer to an LED handle opened with `led_open()`.
+
+Returns 0 on success, or a negative [LED error code](#return-value) on failure.
+
+------
+
+``` c
 int led_set_brightness(led_t *led, unsigned int brightness);
 ```
 Set the brightness of the LED.
 
 `led` should be a valid pointer to an LED handle opened with `led_open()`.
+
+Returns 0 on success, or a negative [LED error code](#return-value) on failure.
+
+------
+
+``` c
+int led_set_trigger(led_t *led, const char *trigger);
+```
+Set the active trigger for the LED.
+
+`led` should be a valid pointer to an LED handle opened with `led_open()`.
+`trigger` should be a null-terminated string.
 
 Returns 0 on success, or a negative [LED error code](#return-value) on failure.
 

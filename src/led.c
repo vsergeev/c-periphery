@@ -155,6 +155,115 @@ int led_get_max_brightness(led_t *led, unsigned int *max_brightness) {
     return 0;
 }
 
+int led_get_trigger(led_t *led, char *str, size_t len) {
+    char led_path[P_PATH_MAX];
+    FILE *fp;
+    int c;
+    enum { SCANNING, TRIGGER } state = SCANNING;
+    size_t i = 0;
+
+    if (!len)
+        return 0;
+
+    snprintf(led_path, sizeof(led_path), "/sys/class/leds/%s/trigger", led->name);
+
+    if ((fp = fopen(led_path, "r")) == NULL)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Opening LED 'trigger'");
+
+    while ((c = fgetc(fp)) != EOF && i < len - 1) {
+        if (c == '[' && state == SCANNING) {
+            state = TRIGGER;
+        } else if (c == ']' && state == TRIGGER) {
+            break;
+        } else if (state == TRIGGER) {
+            str[i++] = (char)c;
+        }
+    }
+
+    if (state != TRIGGER)
+        return _led_error(led, LED_ERROR_QUERY, 0, "Active LED trigger not found");
+
+    /* Null-terminate */
+    str[i] = '\0';
+
+    if (fclose(fp) != 0)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Closing LED 'trigger'");
+
+    return 0;
+}
+
+int led_get_triggers_entry(led_t *led, unsigned int index, char *str, size_t len) {
+    char led_path[P_PATH_MAX];
+    FILE *fp;
+    int c;
+    unsigned int _count = 0;
+    size_t i = 0;
+
+    if (!len)
+        return 0;
+
+    snprintf(led_path, sizeof(led_path), "/sys/class/leds/%s/trigger", led->name);
+
+    if ((fp = fopen(led_path, "r")) == NULL)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Opening LED 'trigger'");
+
+    /* Scan for trigger index */
+    while (_count < index && (c = fgetc(fp)) != EOF) {
+        if (c == ' ' || c == '\n') {
+            _count++;
+        }
+    }
+
+    if (_count != index)
+        return _led_error(led, LED_ERROR_QUERY, 0, "Index %u not found in LED triggers", index);
+
+    /* Copy trigger */
+    while ((c = fgetc(fp)) != EOF && i < len - 1) {
+        if (c == ' ' || c == '\n') {
+            break;
+        } else if (c != '[' && c != ']') {
+            str[i++] = c;
+        }
+    }
+
+    /* Null-terminate */
+    str[i] = '\0';
+
+    if (fclose(fp) != 0)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Closing LED 'trigger'");
+
+    return 0;
+}
+
+int led_get_triggers_count(led_t *led, unsigned int *count) {
+    char led_path[P_PATH_MAX];
+    FILE *fp;
+    int c;
+    enum { SCANNING, TRIGGER } state = SCANNING;
+    unsigned int _count = 0;
+
+    snprintf(led_path, sizeof(led_path), "/sys/class/leds/%s/trigger", led->name);
+
+    if ((fp = fopen(led_path, "r")) == NULL)
+        return _led_error(led, LED_ERROR_IO, errno, "Opening LED 'trigger'");
+
+    while ((c = fgetc(fp)) != EOF) {
+        if ((c == ' ' || c == '\n') && state == TRIGGER) {
+            _count++;
+            state = SCANNING;
+        } else if (state == SCANNING) {
+            state = TRIGGER;
+        }
+    }
+
+    if (fclose(fp) != 0)
+        return _led_error(led, LED_ERROR_IO, errno, "Closing LED 'trigger'");
+
+    *count = _count;
+
+    return 0;
+}
+
 int led_set_brightness(led_t *led, unsigned int brightness) {
     char led_path[P_PATH_MAX];
     char buf[16];
@@ -182,6 +291,27 @@ int led_set_brightness(led_t *led, unsigned int brightness) {
     return 0;
 }
 
+int led_set_trigger(led_t *led, const char *trigger) {
+    char led_path[P_PATH_MAX];
+    FILE *fp;
+
+    snprintf(led_path, sizeof(led_path), "/sys/class/leds/%s/trigger", led->name);
+
+    if ((fp = fopen(led_path, "w")) == NULL)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Opening LED 'trigger'");
+
+    if (fputs(trigger, fp) == EOF)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Writing LED 'trigger'");
+
+    if (fputc('\n', fp) == EOF)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Writing LED 'trigger'");
+
+    if (fclose(fp) != 0)
+        return _led_error(led, LED_ERROR_QUERY, errno, "Closing LED 'trigger'");
+
+    return 0;
+}
+
 int led_name(led_t *led, char *str, size_t len) {
     if (!len)
         return 0;
@@ -197,6 +327,7 @@ int led_tostring(led_t *led, char *str, size_t len) {
     char brightness_str[16];
     unsigned int max_brightness;
     char max_brightness_str[16];
+    char trigger_str[64];
 
     if (led_get_brightness(led, &brightness) < 0)
         strcpy(brightness_str, "<error>");
@@ -208,7 +339,10 @@ int led_tostring(led_t *led, char *str, size_t len) {
     else
         snprintf(max_brightness_str, sizeof(max_brightness_str), "%u", max_brightness);
 
-    return snprintf(str, len, "LED %s (brightness=%s, max_brightness=%s)", led->name, brightness_str, max_brightness_str);
+    if (led_get_trigger(led, trigger_str, sizeof(trigger_str)) < 0)
+        strcpy(trigger_str, "<error>");
+
+    return snprintf(str, len, "LED %s (brightness=%s, max_brightness=%s, trigger=%s)", led->name, brightness_str, max_brightness_str, trigger_str);
 }
 
 int led_errno(led_t *led) {
