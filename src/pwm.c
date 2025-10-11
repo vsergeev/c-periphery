@@ -186,21 +186,24 @@ static int pwm_read_attribute(pwm_t *pwm, const char *name, char *buf, size_t le
     char path[P_PATH_MAX];
     int fd, ret;
 
+    if (!len)
+        return 0;
+
     snprintf(path, sizeof(path), "/sys/class/pwm/pwmchip%u/pwm%u/%s", pwm->chip, pwm->channel, name);
 
     if ((fd = open(path, O_RDONLY)) < 0)
         return _pwm_error(pwm, PWM_ERROR_QUERY, errno, "Opening PWM '%s'", name);
 
-    if ((ret = read(fd, buf, len)) < 0) {
+    if ((ret = read(fd, buf, len - 1)) < 0) {
         int errsv = errno;
         close(fd);
         return _pwm_error(pwm, PWM_ERROR_QUERY, errsv, "Reading PWM '%s'", name);
     }
 
+    buf[ret] = '\0';
+
     if (close(fd) < 0)
         return _pwm_error(pwm, PWM_ERROR_QUERY, errno, "Closing PWM '%s'", name);
-
-    buf[ret] = '\0';
 
     return 0;
 }
