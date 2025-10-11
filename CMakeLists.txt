@@ -24,7 +24,7 @@ add_definitions(-DPERIPHERY_GPIO_CDEV_SUPPORT=${GPIO_CDEV_SUPPORT})
 
 # Library version
 set(VERSION "2.4.3")
-set(SOVERSION ${VERSION})
+set(SOVERSION "2.4")
 
 # Glob sources, headers, tests
 file(GLOB_RECURSE periphery_SOURCES src/*.c)
@@ -47,7 +47,7 @@ set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 # Declare library target
 add_library(periphery ${periphery_SOURCES} ${periphery_HEADERS})
-set_target_properties(periphery PROPERTIES SOVERSION ${VERSION})
+set_target_properties(periphery PROPERTIES VERSION ${VERSION} SOVERSION ${SOVERSION})
 target_include_directories(periphery PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
