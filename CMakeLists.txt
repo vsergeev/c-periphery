@@ -23,8 +23,8 @@ endif()
 add_definitions(-DPERIPHERY_GPIO_CDEV_SUPPORT=${GPIO_CDEV_SUPPORT})
 
 # Library version
-set(VERSION "2.4.3")
-set(SOVERSION "2.4")
+set(VERSION "2.5.0")
+set(SOVERSION "2.5")
 
 # Glob sources, headers, tests
 file(GLOB_RECURSE periphery_SOURCES src/*.c)

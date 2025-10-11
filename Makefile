@@ -1,5 +1,5 @@
-VERSION = 2.4.3
-SO_VERSION = 2.4
+VERSION = 2.5.0
+SO_VERSION = 2.5
 
 STATIC_LIB = periphery.a
 SHARED_LIB = libperiphery.so
