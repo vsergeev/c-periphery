@@ -111,17 +111,16 @@ int led_get_brightness(led_t *led, unsigned int *brightness) {
     if ((fd = open(led_path, O_RDONLY)) < 0)
         return _led_error(led, LED_ERROR_IO, errno, "Opening LED 'brightness'");
 
-    if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+    if ((ret = read(fd, buf, sizeof(buf) - 1)) < 0) {
         int errsv = errno;
         close(fd);
         return _led_error(led, LED_ERROR_IO, errsv, "Reading LED 'brightness'");
     }
 
+    buf[ret] = '\0';
+
     if (close(fd) < 0)
         return _led_error(led, LED_ERROR_IO, errno, "Closing LED 'brightness'");
-
-    /* Null-terminate over newline */
-    buf[ret] = '\0';
 
     *brightness = strtoul(buf, NULL, 10);
 
@@ -138,17 +137,16 @@ int led_get_max_brightness(led_t *led, unsigned int *max_brightness) {
     if ((fd = open(led_path, O_RDONLY)) < 0)
         return _led_error(led, LED_ERROR_QUERY, errno, "Opening LED 'max_brightness'");
 
-    if ((ret = read(fd, buf, sizeof(buf))) < 0) {
+    if ((ret = read(fd, buf, sizeof(buf) - 1)) < 0) {
         int errsv = errno;
         close(fd);
         return _led_error(led, LED_ERROR_QUERY, errsv, "Reading LED 'max_brightness'");
     }
 
+    buf[ret] = '\0';
+
     if (close(fd) < 0)
         return _led_error(led, LED_ERROR_QUERY, errno, "Closing LED 'max_brightness'");
-
-    /* Null-terminate over newline */
-    buf[ret] = '\0';
 
     led->max_brightness = strtoul(buf, NULL, 10);
 
