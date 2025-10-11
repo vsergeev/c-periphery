@@ -23,9 +23,11 @@ void test_arguments(void) {
 
 void test_open_config_close(void) {
     led_t *led;
-    char name[16];
+    char name[64];
+    char trigger[64];
     unsigned int max_brightness;
     unsigned int brightness;
+    unsigned int triggers_count;
     bool value;
 
     ptest();
@@ -50,6 +52,16 @@ void test_open_config_close(void) {
 
     /* Check setting invalid brightness */
     passert(led_set_brightness(led, max_brightness + 1) == LED_ERROR_ARG);
+
+    /* Read trigger */
+    passert(led_get_trigger(led, trigger, sizeof(trigger)) == 0);
+    /* Read triggers count */
+    passert(led_get_triggers_count(led, &triggers_count) == 0);
+    passert(triggers_count > 0);
+    /* Read each trigger */
+    for (unsigned int i = 0; i < triggers_count; i++) {
+        passert(led_get_triggers_entry(led, i, trigger, sizeof(trigger)) == 0);
+    }
 
     /* Write true, read true, check brightness is max */
     passert(led_write(led, true) == 0);
@@ -79,6 +91,16 @@ void test_open_config_close(void) {
     passert(led_get_brightness(led, &brightness) == 0);
     passert(brightness == 0);
 
+    /* Set trigger to default, check isn't none */
+    passert(led_set_trigger(led, "default") == 0);
+    passert(led_get_trigger(led, trigger, sizeof(trigger)) == 0);
+    passert(strcmp(trigger, "none") != 0);
+
+    /* Set trigger to none, check trigger */
+    passert(led_set_trigger(led, "none") == 0);
+    passert(led_get_trigger(led, trigger, sizeof(trigger)) == 0);
+    passert(strcmp(trigger, "none") == 0);
+
     passert(led_close(led) == 0);
 
     /* Free LED */
@@ -97,6 +119,8 @@ bool getc_yes(void) {
 
 void test_interactive(void) {
     char str[256];
+    char trigger[64];
+    unsigned int triggers_count;
     led_t *led;
 
     ptest();
@@ -117,6 +141,18 @@ void test_interactive(void) {
     printf("LED description looks OK? y/n\n");
     passert(getc_yes());
 
+    /* Check triggers */
+    passert(led_get_trigger(led, trigger, sizeof(trigger)) == 0);
+    passert(led_get_triggers_count(led, &triggers_count) == 0);
+    printf("LED active trigger: %s\n", trigger);
+    printf("LED available triggers (%d): ", triggers_count);
+    for (unsigned int i = 0; i < triggers_count; i++) {
+        assert(led_get_triggers_entry(led, i, trigger, sizeof(trigger)) == 0);
+        printf("%s ", trigger);
+    }
+    printf("\nLED triggers look OK? y/n\n");
+    passert(getc_yes());
+
     /* Turn LED off */
     passert(led_write(led, false) == 0);
     printf("LED is off? y/n\n");
@@ -136,6 +172,9 @@ void test_interactive(void) {
     passert(led_write(led, true) == 0);
     printf("LED is on? y/n\n");
     passert(getc_yes());
+
+    /* Restore default trigger */
+    passert(led_set_trigger(led, "default") == 0);
 
     passert(led_close(led) == 0);
 
