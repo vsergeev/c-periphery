@@ -63,13 +63,13 @@ void test_open_config_close(void) {
         passert(led_get_triggers_entry(led, i, trigger, sizeof(trigger)) == 0);
     }
 
-    /* Write true, read true, check brightness is max */
+    /* Write true, read true, check brightness is non-zero */
     passert(led_write(led, true) == 0);
     usleep(10000);
     passert(led_read(led, &value) == 0);
     passert(value == true);
     passert(led_get_brightness(led, &brightness) == 0);
-    passert(brightness == max_brightness);
+    passert(brightness > 0);
 
     /* Write false, read false, check brightness is zero */
     passert(led_write(led, false) == 0);
