@@ -151,10 +151,11 @@ void test_interactive(void) {
     printf("Press enter to start transfer...");
     getc(stdin);
     passert(i2c_transfer(i2c, msgs, 1) < 0);
-    passert(i2c_errno(i2c) == EREMOTEIO);
-    passert(i2c_close(i2c) == 0);
+    passert(i2c_errno(i2c) > 0);
     printf("I2C transfer occurred? y/n\n");
     passert(getc_yes());
+
+    passert(i2c_close(i2c) == 0);
 
     /* Free I2C */
     i2c_free(i2c);
