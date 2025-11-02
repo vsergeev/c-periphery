@@ -189,10 +189,10 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[2/4] Open/close test: LED should be real.\n");
         fprintf(stderr, "[3/4] Loopback test: No test.\n");
         fprintf(stderr, "[4/4] Interactive test: LED should be observed.\n\n");
-        fprintf(stderr, "Hint: for Raspberry Pi 3, disable triggers for led1:\n");
-        fprintf(stderr, "    $ echo none > /sys/class/leds/led1/trigger\n");
-        fprintf(stderr, "Observe led1 (red power LED), and run this test:\n");
-        fprintf(stderr, "    %s led1\n\n", argv[0]);
+        fprintf(stderr, "Hint: for Raspberry Pi 3, disable triggers for PWR:\n");
+        fprintf(stderr, "    $ echo none > /sys/class/leds/PWR/trigger\n");
+        fprintf(stderr, "Observe PWR (red power LED), and run this test:\n");
+        fprintf(stderr, "    %s PWR\n\n", argv[0]);
         exit(1);
     }
 

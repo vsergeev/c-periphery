@@ -262,7 +262,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[3/4] Loopback test: Serial TX and RX should be connected with a wire.\n");
         fprintf(stderr, "[4/4] Interactive test: Serial TX should be observed with an oscilloscope or logic analyzer.\n\n");
         fprintf(stderr, "Hint: for Raspberry Pi 3, enable UART0 with:\n");
-        fprintf(stderr, "   $ echo \"dtoverlay=pi3-disable-bt\" | sudo tee -a /boot/config.txt\n");
+        fprintf(stderr, "   $ echo \"enable_uart=1\" | sudo tee -a /boot/firmware/config.txt\n");
+        fprintf(stderr, "   $ echo \"dtoverlay=pi3-disable-bt\" | sudo tee -a /boot/firmware/config.txt\n");
         fprintf(stderr, "   $ sudo systemctl disable hciuart\n");
         fprintf(stderr, "   $ sudo reboot\n");
         fprintf(stderr, "   (Note that this will disable Bluetooth)\n");

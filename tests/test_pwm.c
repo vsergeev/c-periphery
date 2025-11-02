@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[3/4] Loopback test: No test.\n");
         fprintf(stderr, "[4/4] Interactive test: PWM channel should be observed with an oscilloscope or logic analyzer.\n\n");
         fprintf(stderr, "Hint: for Raspberry Pi 3, enable PWM0 and PWM1 with:\n");
-        fprintf(stderr, "   $ echo \"dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4\" | sudo tee -a /boot/config.txt\n");
+        fprintf(stderr, "   $ echo \"dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4\" | sudo tee -a /boot/firmware/config.txt\n");
         fprintf(stderr, "   $ sudo reboot\n");
         fprintf(stderr, "Monitor GPIO 18 (header pin 12), and run this test with:\n");
         fprintf(stderr, "    %s 0 0\n", argv[0]);

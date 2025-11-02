@@ -236,7 +236,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[3/4] Loopback test: SPI MISO and MOSI should be connected with a wire.\n");
         fprintf(stderr, "[4/4] Interactive test: SPI MOSI, CLK, CS should be observed with an oscilloscope or logic analyzer.\n\n");
         fprintf(stderr, "Hint: for Raspberry Pi 3, enable SPI0 with:\n");
-        fprintf(stderr, "   $ echo \"dtparam=spi=on\" | sudo tee -a /boot/config.txt\n");
+        fprintf(stderr, "   $ echo \"dtparam=spi=on\" | sudo tee -a /boot/firmware/config.txt\n");
         fprintf(stderr, "   $ sudo reboot\n");
         fprintf(stderr, "Use pins SPI0 MOSI (header pin 19), SPI0 MISO (header pin 21), SPI0 SCLK (header pin 23),\n");
         fprintf(stderr, "connect a loopback between MOSI and MISO, and run this test with:\n");
