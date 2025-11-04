@@ -372,16 +372,16 @@ int spi_set_bits_per_word(spi_t *spi, uint8_t bits_per_word) {
 }
 
 int spi_tostring(spi_t *spi, char *str, size_t len) {
-    unsigned int mode;
+    unsigned int mode = 0;
     char mode_str[2];
-    uint32_t max_speed;
+    uint32_t max_speed = 0;
     char max_speed_str[16];
-    uint8_t bits_per_word;
+    uint8_t bits_per_word = 0;
     char bits_per_word_str[4];
-    spi_bit_order_t bit_order;
+    spi_bit_order_t bit_order = 0;
     const char *bit_order_str;
-    uint8_t extra_flags8;
-    uint32_t extra_flags32;
+    uint8_t extra_flags8 = 0;
+    uint32_t extra_flags32 = 0;
     char extra_flags_str[11];
 
     if (spi_get_mode(spi, &mode) < 0)

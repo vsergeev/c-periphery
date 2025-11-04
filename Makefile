@@ -23,7 +23,7 @@ GPIO_CDEV_SUPPORT = $(if $(filter 1,$(GPIO_CDEV_V2_SUPPORT)),2,$(if $(filter 1,$
 COMMIT_ID := $(shell git describe --abbrev --always --tags --dirty 2>$(NULL) || echo "")
 
 OPT ?= -O3
-CFLAGS += -std=gnu99 -pedantic
+CFLAGS += -std=gnu2x -pedantic
 CFLAGS += $(OPT)
 CFLAGS += -Wall -Wextra -Wno-stringop-truncation $(DEBUG) -fPIC
 CFLAGS += -DPERIPHERY_VERSION_COMMIT=\"$(COMMIT_ID)\" -DPERIPHERY_GPIO_CDEV_SUPPORT=$(GPIO_CDEV_SUPPORT)

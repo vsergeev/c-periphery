@@ -1,8 +1,13 @@
 name: Build
 
 on:
-  - push
-  - pull_request
+  workflow_dispatch:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   build:
