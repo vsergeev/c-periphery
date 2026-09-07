@@ -28,6 +28,9 @@ void test_open_config_close(void) {
     unsigned int max_brightness;
     unsigned int brightness;
     unsigned int triggers_count;
+    unsigned int red;
+    unsigned int green;
+    unsigned int blue;
     bool value;
 
     ptest();
@@ -49,6 +52,18 @@ void test_open_config_close(void) {
     /* Check max brightness */
     passert(led_get_max_brightness(led, &max_brightness) == 0);
     passert(max_brightness > 0);
+
+    /* Check multi-intensity values */
+    passert(led_set_multi_intensity(led, 1, 2, 3) == 0);
+    usleep(10000);
+    passert(led_get_multi_intensity(led, &red, &green, &blue) == 0);
+    passert(red == 1);
+    passert(green == 2);
+    passert(blue == 3);
+    passert(led_set_multi_intensity(led, 256, 0, 0) == LED_ERROR_ARG);
+    passert(led_set_multi_intensity(led, 0, 256, 0) == LED_ERROR_ARG);
+    passert(led_set_multi_intensity(led, 0, 0, 256) == LED_ERROR_ARG);
+    passert(led_set_multi_intensity(led, 0, 0, 0) == 0);
 
     /* Check setting invalid brightness */
     passert(led_set_brightness(led, max_brightness + 1) == LED_ERROR_ARG);

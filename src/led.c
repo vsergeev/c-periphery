@@ -101,6 +101,33 @@ void led_free(led_t *led) {
     free(led);
 }
 
+int led_get_multi_intensity(led_t *led, unsigned int *red, unsigned int *green, unsigned int *blue) {
+    char led_path[P_PATH_MAX];
+    char buf[16];
+    int fd, ret;
+
+    snprintf(led_path, sizeof(led_path), "/sys/class/leds/%s/multi_intensity", led->name);
+
+    if ((fd = open(led_path, O_RDONLY)) < 0)
+        return _led_error(led, LED_ERROR_IO, errno, "Opening LED 'multi_intensity'");
+
+    if ((ret = read(fd, buf, sizeof(buf) - 1)) < 0) {
+        int errsv = errno;
+        close(fd);
+        return _led_error(led, LED_ERROR_IO, errsv, "Reading LED 'multi_intensity'");
+    }
+
+    buf[ret] = '\0';
+
+    if (close(fd) < 0)
+        return _led_error(led, LED_ERROR_IO, errno, "Closing LED 'multi_intensity'");
+
+    if (sscanf(buf, "%u %u %u", red, green, blue) != 3)
+        return _led_error(led, LED_ERROR_IO, 0, "Invalid LED 'multi_intensity' value");
+
+    return 0;
+}
+
 int led_get_brightness(led_t *led, unsigned int *brightness) {
     char led_path[P_PATH_MAX];
     char buf[16];
@@ -260,6 +287,42 @@ int led_get_triggers_count(led_t *led, unsigned int *count) {
         return _led_error(led, LED_ERROR_IO, errno, "Closing LED 'trigger'");
 
     *count = _count;
+
+    return 0;
+}
+
+int led_set_multi_intensity(led_t *led, unsigned int red, unsigned int green, unsigned int blue) {
+    char led_path[P_PATH_MAX];
+    char buf[16];
+    int fd, len;
+
+    if (red > 255) {
+        return _led_error(led, LED_ERROR_ARG, 0, "Red out of bounds (max is 255)");
+    }
+
+    if (green > 255) {
+        return _led_error(led, LED_ERROR_ARG, 0, "Green out of bounds (max is 255)");
+    }
+
+    if (blue > 255) {
+        return _led_error(led, LED_ERROR_ARG, 0, "blue out of bounds (max is 255)");
+    }
+
+    snprintf(led_path, sizeof(led_path), "/sys/class/leds/%s/multi_intensity", led->name);
+
+    if ((fd = open(led_path, O_WRONLY)) < 0)
+        return _led_error(led, LED_ERROR_IO, errno, "Opening LED 'multi_intensity'");
+
+    len = snprintf(buf, sizeof(buf), "%u %u %u\n", red, green, blue);
+
+    if (write(fd, buf, len) < 0) {
+        int errsv = errno;
+        close(fd);
+        return _led_error(led, LED_ERROR_IO, errsv, "Writing LED 'multi_intensity'");
+    }
+
+    if (close(fd) < 0)
+        return _led_error(led, LED_ERROR_IO, errno, "Closing LED 'multi_intensity'");
 
     return 0;
 }
