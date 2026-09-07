@@ -34,6 +34,7 @@ int led_close(led_t *led);
 void led_free(led_t *led);
 
 /* Getters */
+int led_get_multi_intensity(led_t *led, unsigned int *red, unsigned int *green, unsigned int *blue);
 int led_get_brightness(led_t *led, unsigned int *brightness);
 int led_get_max_brightness(led_t *led, unsigned int *max_brightness);
 int led_get_trigger(led_t *led, char *str, size_t len);
@@ -41,6 +42,7 @@ int led_get_triggers_entry(led_t *led, unsigned int index, char *str, size_t len
 int led_get_triggers_count(led_t *led, unsigned int *count);
 
 /* Setters */
+int led_set_multi_intensity(led_t *led, unsigned int red, unsigned int green, unsigned int blue);
 int led_set_brightness(led_t *led, unsigned int brightness);
 int led_set_trigger(led_t *led, const char *trigger);
 
