@@ -149,7 +149,7 @@ Returns 0 on success, or a negative [Serial error code](#return-value) on failur
 ------
 
 ``` c
-bool serial_poll(serial_t *serial, int timeout_ms);
+int serial_poll(serial_t *serial, int timeout_ms);
 ```
 Poll for data available for reading from the serial port.
 
