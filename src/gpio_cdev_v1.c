@@ -273,8 +273,10 @@ static int gpio_cdev_set_event_clock(gpio_t *gpio, gpio_event_clock_t event_cloc
 }
 
 static int gpio_cdev_set_debounce_us(gpio_t *gpio, uint32_t debounce_us) {
-    (void)debounce_us;
-    return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring debounce");
+    if (debounce_us != 0)
+        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring debounce");
+
+    return 0;
 }
 
 static int gpio_cdev_set_bias(gpio_t *gpio, gpio_bias_t bias) {
