@@ -93,7 +93,7 @@ Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
 ------
 
 ``` c
-int mmio_write32(mmio_t *mmio, uintptr_t offset, uint64_t value);
+int mmio_write64(mmio_t *mmio, uintptr_t offset, uint64_t value);
 int mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value);
 int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value);
 int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value);
