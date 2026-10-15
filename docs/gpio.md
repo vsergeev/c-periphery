@@ -142,6 +142,8 @@ Open the character device GPIO with the specified GPIO line and configuration at
 
 `gpio` should be a valid pointer to an allocated GPIO handle structure. `path` is the GPIO chip character device path. `line` is the GPIO line number. `config` should be a valid pointer to a `gpio_config_t` structure with valid values. `label` can be `NULL` for a default consumer label.
 
+For v1 character device GPIOs, debounce period is not supported, and only the realtime event clock is supported. Line bias is not supported by v1 character device GPIOs built with Linux kernel headers older than version 5.5.
+
 Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 
 ------
@@ -163,6 +165,8 @@ int gpio_open_name_advanced(gpio_t *gpio, const char *path, const char *name, co
 Open the character device GPIO with the specified GPIO name and configuration at the specified character device GPIO chip path (e.g. `/dev/gpiochip0`).
 
 `gpio` should be a valid pointer to an allocated GPIO handle structure. `path` is the GPIO chip character device path. `name` is the GPIO line name. `config` should be a valid pointer to a `gpio_config_t` structure with valid values. `label` can be `NULL` for a default consumer label.
+
+For v1 character device GPIOs, debounce period is not supported, and only the realtime event clock is supported. Line bias is not supported by v1 character device GPIOs built with Linux kernel headers older than version 5.5.
 
 Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 
@@ -270,7 +274,7 @@ int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 ```
 Get the configured direction, interrupt edge, event clock, debounce period, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
 
-Line bias and line drive properties are not supported by sysfs GPIOs.
+For sysfs GPIOs, event clock, debounce period, line bias, and line drive are not supported. For v1 character device GPIOs, debounce period is not supported, and only the realtime event clock is supported. Line bias is not supported by v1 character device GPIOs built with Linux kernel headers older than version 5.5.
 
 `gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
 
@@ -289,7 +293,7 @@ int gpio_set_inverted(gpio_t *gpio, bool inverted);
 ```
 Set the direction, interrupt edge, event clock, debounce period, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
 
-Line bias and line drive properties are not supported by sysfs GPIOs.
+For sysfs GPIOs, event clock, debounce period, line bias, and line drive are not supported. For v1 character device GPIOs, debounce period is not supported, and only the realtime event clock is supported. Line bias is not supported by v1 character device GPIOs built with Linux kernel headers older than version 5.5.
 
 `gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
 
