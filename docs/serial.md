@@ -109,7 +109,7 @@ int serial_write(serial_t *serial, const uint8_t *buf, size_t len);
 ```
 Write `len` number of bytes from the `buf` buffer to the serial port.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 Returns the number of bytes written on success, or a negative [Serial error code](#return-value) on failure.
 
@@ -120,7 +120,7 @@ int serial_flush(serial_t *serial);
 ```
 Flush the write buffer of the serial port (i.e. force its write immediately).
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 Returns 0 on success, or a negative [Serial error code](#return-value) on failure.
 
@@ -131,7 +131,7 @@ int serial_input_waiting(serial_t *serial, unsigned int *count);
 ```
 Get the number of bytes waiting to be read from the serial port.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 Returns 0 on success, or a negative [Serial error code](#return-value) on failure.
 
@@ -142,7 +142,7 @@ int serial_output_waiting(serial_t *serial, unsigned int *count);
 ```
 Get the number of bytes waiting to be written to the serial port.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 Returns 0 on success, or a negative [Serial error code](#return-value) on failure.
 
@@ -164,7 +164,7 @@ int serial_close(serial_t *serial);
 ```
 Close the `tty` device.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 Returns 0 on success, or a negative [Serial error code](#return-value) on failure.
 
@@ -187,7 +187,7 @@ int serial_get_rtscts(serial_t *serial, bool *rtscts);
 ```
 Get the baudrate, data bits, parity, stop bits, software flow control (xonxoff), or hardware flow control (rtscts), respectively, of the underlying `tty` device.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 Returns 0 on success, or a negative [Serial error code](#return-value) on failure.
 
@@ -203,7 +203,7 @@ int serial_set_rtscts(serial_t *serial, bool enabled);
 ```
 Set the baudrate, data bits, parity, stop bits, software flow control (xonxoff), or hardware flow control (rtscts), respectively, on the underlying `tty` device.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 Returns 0 on success, or a negative [Serial error code](#return-value) on failure.
 
@@ -232,7 +232,7 @@ int serial_fd(serial_t *serial);
 ```
 Return the file descriptor (for the underlying `tty` device) of the Serial handle.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 This function is a simple accessor to the Serial handle structure and always succeeds.
 
@@ -243,7 +243,7 @@ int serial_tostring(serial_t *serial, char *str, size_t len);
 ```
 Return a string representation of the Serial handle.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 This function behaves and returns like `snprintf()`.
 
@@ -254,7 +254,7 @@ int serial_errno(serial_t *serial);
 ```
 Return the libc errno of the last failure that occurred.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 ------
 
@@ -263,7 +263,7 @@ const char *serial_errmsg(serial_t *serial);
 ```
 Return a human readable error message of the last failure that occurred.
 
-`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`. 
+`serial` should be a valid pointer to a Serial handle opened with `serial_open()` or `serial_open_advanced()`.
 
 ### RETURN VALUE
 
