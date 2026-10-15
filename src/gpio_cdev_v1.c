@@ -515,7 +515,7 @@ int gpio_open_advanced(gpio_t *gpio, const char *path, unsigned int line, const 
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO line drive for input GPIO");
 
     if (config->event_clock != GPIO_EVENT_CLOCK_REALTIME)
-        return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Kernel version does not support configuring event clock");
+        return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring event clock");
 
     if (config->debounce_us != 0)
         return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "Kernel version does not support configuring debounce");
