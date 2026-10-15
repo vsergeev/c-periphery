@@ -123,7 +123,7 @@ int spi_transfer_advanced(spi_t *spi, const spi_msg_t *msgs, size_t count);
 ```
 Transfer messages, shifting out `len` word counts of the `txbuf` buffer, while shifting in `len` word counts to the `rxbuf` buffer for each message. If `deselect` is true, deselect the device before reselecting it for the following transfer.
 
-`deselect_delay_us` specifies a delay in microseconds before deselection when `deselect` is true. `word_delay_us` specifies a delay in microseconds between words within a transfer. Note that `deselect_delay_us` and `word_delay_us` may not by supported by all SPI controllers and may be silently ignored.
+`deselect_delay_us` specifies a delay in microseconds before deselection when `deselect` is true. `word_delay_us` specifies a delay in microseconds between words within a transfer. Note that `deselect_delay_us` and `word_delay_us` may not be supported by all SPI controllers and may be silently ignored.
 
 `spi` should be a valid pointer to an SPI handle opened with `spi_open()` or `spi_open_advanced()`.
 
