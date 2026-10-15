@@ -195,7 +195,7 @@ Returns 0 on success, or a negative [PWM error code](#return-value) on failure.
 ------
 
 ``` c
-int pwm_set_polarity(pwm_t *pwm, pwm_polarity_t *polarity);
+int pwm_set_polarity(pwm_t *pwm, pwm_polarity_t polarity);
 ```
 Set the output polarity of the PWM.
 
