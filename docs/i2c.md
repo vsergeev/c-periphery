@@ -142,7 +142,7 @@ The libc errno of the failure in an underlying libc library call can be obtained
 |---------------------------|-----------------------------------|
 | `I2C_ERROR_ARG`           | Invalid arguments                 |
 | `I2C_ERROR_OPEN`          | Opening I2C device                |
-| `I2C_ERROR_QUERY`         | Querying I2C device attribtues    |
+| `I2C_ERROR_QUERY`         | Querying I2C device attributes    |
 | `I2C_ERROR_NOT_SUPPORTED` | I2C not supported on this device  |
 | `I2C_ERROR_TRANSFER`      | I2C transfer                      |
 | `I2C_ERROR_CLOSE`         | Closing I2C device                |
