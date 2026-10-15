@@ -9,7 +9,7 @@ I2C wrapper functions for Linux userspace `i2c-dev` devices.
 
 /* Primary Functions */
 i2c_t *i2c_new(void);
-int i2c_open(i2c_t *i2c, const char *device);
+int i2c_open(i2c_t *i2c, const char *path);
 int i2c_transfer(i2c_t *i2c, struct i2c_msg *msgs, size_t count);
 int i2c_close(i2c_t *i2c);
 void i2c_free(i2c_t *i2c);
@@ -53,7 +53,7 @@ Returns a valid handle on success, or NULL on failure.
 ------
 
 ``` c
-int i2c_open(i2c_t *i2c, const char *device);
+int i2c_open(i2c_t *i2c, const char *path);
 ```
 Open the `i2c-dev` device at the specified path (e.g. "/dev/i2c-1").
 
