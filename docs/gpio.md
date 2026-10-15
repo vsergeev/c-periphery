@@ -2,7 +2,7 @@
 
 GPIO wrapper functions for Linux userspace character device `gpio-cdev` and sysfs GPIOs.
 
-Character device GPIOs were introduced in Linux kernel version 4.8. If the toolchain used to compiled c-periphery contains Linux kernel headers older than 4.8 (i.e. `linux/gpio.h` is missing), then only legacy sysfs GPIOs will be supported.
+Character device GPIOs were introduced in Linux kernel version 4.8. If the toolchain used to compile c-periphery contains Linux kernel headers older than 4.8 (i.e. `linux/gpio.h` is missing), then only legacy sysfs GPIOs will be supported.
 
 ### SYNOPSIS
 
@@ -268,7 +268,7 @@ int gpio_get_bias(gpio_t *gpio, gpio_bias_t *bias);
 int gpio_get_drive(gpio_t *gpio, gpio_drive_t *drive);
 int gpio_get_inverted(gpio_t *gpio, bool *inverted);
 ```
-Get the configured direction, interrupt edge, event clock, debounce period properties, line bias, line drive, inverted (active low), respectively, of the GPIO.
+Get the configured direction, interrupt edge, event clock, debounce period, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
 
 Line bias and line drive properties are not supported by sysfs GPIOs.
 
@@ -287,7 +287,7 @@ int gpio_set_bias(gpio_t *gpio, gpio_bias_t bias);
 int gpio_set_drive(gpio_t *gpio, gpio_drive_t drive);
 int gpio_set_inverted(gpio_t *gpio, bool inverted);
 ```
-Set the direction, interrupt edge, event clock, debounce period properties, line bias, line drive, inverted (active low), respectively, of the GPIO.
+Set the direction, interrupt edge, event clock, debounce period, line bias, line drive, inverted (active low) properties, respectively, of the GPIO.
 
 Line bias and line drive properties are not supported by sysfs GPIOs.
 
