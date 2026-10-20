@@ -229,7 +229,7 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
     cfsetospeed(&termios_settings, _serial_baudrate_to_bits(baudrate));
 
     /* Set termios attributes */
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0) {
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0) {
         int errsv = errno;
         close(serial->fd);
         serial->fd = -1;
@@ -342,7 +342,7 @@ int serial_close(serial_t *serial) {
 int serial_get_baudrate(serial_t *serial, uint32_t *baudrate) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     *baudrate = _serial_bits_to_baudrate(cfgetospeed(&termios_settings));
@@ -353,7 +353,7 @@ int serial_get_baudrate(serial_t *serial, uint32_t *baudrate) {
 int serial_get_databits(serial_t *serial, unsigned int *databits) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     switch (termios_settings.c_cflag & CSIZE) {
@@ -377,7 +377,7 @@ int serial_get_databits(serial_t *serial, unsigned int *databits) {
 int serial_get_parity(serial_t *serial, serial_parity_t *parity) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     if ((termios_settings.c_cflag & PARENB) == 0)
@@ -393,7 +393,7 @@ int serial_get_parity(serial_t *serial, serial_parity_t *parity) {
 int serial_get_stopbits(serial_t *serial, unsigned int *stopbits) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     if (termios_settings.c_cflag & CSTOPB)
@@ -407,7 +407,7 @@ int serial_get_stopbits(serial_t *serial, unsigned int *stopbits) {
 int serial_get_xonxoff(serial_t *serial, bool *xonxoff) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     if (termios_settings.c_iflag & (IXON | IXOFF))
@@ -421,7 +421,7 @@ int serial_get_xonxoff(serial_t *serial, bool *xonxoff) {
 int serial_get_rtscts(serial_t *serial, bool *rtscts) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     if (termios_settings.c_cflag & CRTSCTS)
@@ -435,7 +435,7 @@ int serial_get_rtscts(serial_t *serial, bool *rtscts) {
 int serial_get_vmin(serial_t *serial, unsigned int *vmin) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     *vmin = termios_settings.c_cc[VMIN];
@@ -446,7 +446,7 @@ int serial_get_vmin(serial_t *serial, unsigned int *vmin) {
 int serial_get_vtime(serial_t *serial, float *vtime) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     *vtime = ((float)termios_settings.c_cc[VTIME]) / 10;
@@ -457,13 +457,13 @@ int serial_get_vtime(serial_t *serial, float *vtime) {
 int serial_set_baudrate(serial_t *serial, uint32_t baudrate) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     cfsetispeed(&termios_settings, _serial_baudrate_to_bits(baudrate));
     cfsetospeed(&termios_settings, _serial_baudrate_to_bits(baudrate));
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     return 0;
@@ -475,7 +475,7 @@ int serial_set_databits(serial_t *serial, unsigned int databits) {
     if (databits != 5 && databits != 6 && databits != 7 && databits != 8)
         return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid data bits (can be 5,6,7,8)");
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     termios_settings.c_cflag &= ~CSIZE;
@@ -488,7 +488,7 @@ int serial_set_databits(serial_t *serial, unsigned int databits) {
     else if (databits == 8)
         termios_settings.c_cflag |= CS8;
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     return 0;
@@ -500,7 +500,7 @@ int serial_set_parity(serial_t *serial, enum serial_parity parity) {
     if (parity != PARITY_NONE && parity != PARITY_ODD && parity != PARITY_EVEN)
         return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid parity (can be PARITY_NONE,PARITY_ODD,PARITY_EVEN)");
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     termios_settings.c_iflag &= ~(INPCK | ISTRIP);
@@ -513,7 +513,7 @@ int serial_set_parity(serial_t *serial, enum serial_parity parity) {
     else if (parity == PARITY_ODD)
         termios_settings.c_cflag |= (PARENB | PARODD);
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     return 0;
@@ -525,14 +525,14 @@ int serial_set_stopbits(serial_t *serial, unsigned int stopbits) {
     if (stopbits != 1 && stopbits != 2)
         return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid stop bits (can be 1,2)");
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     termios_settings.c_cflag &= ~(CSTOPB);
     if (stopbits == 2)
         termios_settings.c_cflag |= CSTOPB;
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     return 0;
@@ -541,14 +541,14 @@ int serial_set_stopbits(serial_t *serial, unsigned int stopbits) {
 int serial_set_xonxoff(serial_t *serial, bool enabled) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     termios_settings.c_iflag &= ~(IXON | IXOFF | IXANY);
     if (enabled)
         termios_settings.c_iflag |= (IXON | IXOFF);
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     return 0;
@@ -557,14 +557,14 @@ int serial_set_xonxoff(serial_t *serial, bool enabled) {
 int serial_set_rtscts(serial_t *serial, bool enabled) {
     struct termios termios_settings;
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     termios_settings.c_cflag &= ~CRTSCTS;
     if (enabled)
         termios_settings.c_cflag |= CRTSCTS;
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     return 0;
@@ -576,12 +576,12 @@ int serial_set_vmin(serial_t *serial, unsigned int vmin) {
     if (vmin > 255)
         return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid vmin (can be 0-255)");
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     termios_settings.c_cc[VMIN] = vmin;
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     serial->use_termios_timeout = vmin > 0;
@@ -595,12 +595,12 @@ int serial_set_vtime(serial_t *serial, float vtime) {
     if (vtime < 0.0 || vtime > 25.5)
         return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid vtime (can be 0-25.5)");
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_QUERY, errno, "Getting serial port attributes");
 
     termios_settings.c_cc[VTIME] = ((unsigned int)(vtime * 10));
 
-    if (tcsetattr(serial->fd, TCSANOW, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCSETS, &termios_settings) < 0)
         return _serial_error(serial, SERIAL_ERROR_CONFIGURE, errno, "Setting serial port attributes");
 
     return 0;
@@ -616,7 +616,7 @@ int serial_tostring(serial_t *serial, char *str, size_t len) {
     /* Instead of calling all of our individual getter functions, let's poll
      * termios attributes once to be efficient. */
 
-    if (tcgetattr(serial->fd, &termios_settings) < 0)
+    if (ioctl(serial->fd, TCGETS, &termios_settings) < 0)
         return snprintf(str, len, "Serial (baudrate=?, databits=?, parity=?, stopbits=?, xonxoff=?, rtscts=?)");
 
      baudrate = _serial_bits_to_baudrate(cfgetospeed(&termios_settings));
