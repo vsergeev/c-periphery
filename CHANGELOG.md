@@ -1,3 +1,22 @@
+* v2.5.1 - 10/20/2026
+    * GPIO
+        * Allow zero value with `gpio_set_debounce_us()` for gpio-cdev v1
+          implementation.
+        * Fix error code for unsupported event clock configuration with
+          gpio-cdev v1 implementation.
+        * Fix typos, prototypes in documentation.
+        * Clarify supported properties for gpio-cdev v1 ABI in documentation.
+    * SPI
+        * Fix typos and missing error code in documentation.
+    * I2C
+        * Fix typos and prototypes in documentation.
+    * Serial
+        * Fix typos and prototypes in documentation.
+    * MMIO
+        * Fix prototypes in documentation.
+    * PWM
+        * Fix prototypes in documentation.
+
 * v2.5.0 - 11/02/2025
     * MMIO
         * Add `read64()` and `write64()` APIs.
