@@ -88,6 +88,7 @@ static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge
             line_request.config.num_attrs = 1;
             line_request.config.attrs[0].attr.id = GPIO_V2_LINE_ATTR_ID_DEBOUNCE;
             line_request.config.attrs[0].attr.debounce_period_us = debounce_us;
+            line_request.config.attrs[0].mask = 1;
         }
 
         if (ioctl(gpio->u.cdev.chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_request) < 0)
