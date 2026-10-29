@@ -39,9 +39,20 @@ execute_process(
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+# Set Warning level to all and extra
+set(CMAKE_WARNINGS_FLAGS "-Wall -Wextra -Wno-stringop-truncation")
+
+# Set C and C++ standard to 2023
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_EXTENSIONS ON)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Define C flags and include directories
 add_definitions(-DPERIPHERY_VERSION_COMMIT="${COMMIT_ID}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -Wextra -Wno-stringop-truncation -fPIC")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -fPIC")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 

@@ -400,8 +400,11 @@ void test_loopback(void) {
 
 bool getc_yes(void) {
     char buf[4];
-    fgets(buf, sizeof(buf), stdin);
-    return (buf[0] == 'y' || buf[0] == 'Y');
+    if (fgets(buf, sizeof(buf), stdin) != NULL) {
+        return (buf[0] == 'y' || buf[0] == 'Y');
+    } else {
+        return false;
+    }
 }
 
 void test_interactive(void) {
