@@ -1,3 +1,7 @@
+* v2.5.2 - 11/04/2026
+    * GPIO
+        * Fix debounce period configuration in gpio-cdev v2 implementation.
+
 * v2.5.1 - 10/20/2026
     * GPIO
         * Allow zero value with `gpio_set_debounce_us()` for gpio-cdev v1
