@@ -111,6 +111,65 @@ int main(void) {
 
 [Go to LED documentation.](docs/led.md)
 
+
+
+### BackLight
+
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#include "backlight.h"
+
+int main(void) {
+    backlight_t *bl;
+    unsigned int max_brightness;
+    unsigned int bl_val;
+
+    backlight = backlight_new();
+
+    /* Open sgm3735-backlight backlight device on /sys/class/backlight */
+    if (backlight_open(backlight, "sgm3735-backlight") < 0) {
+        fprintf(stderr, "backlight_open(): %s\n", backlight_errmsg(backlight));
+        exit(1);
+    }
+
+    /* Turn on BACKLIGHT (set max brightness) */
+    if (backlight_write(backlight, true) < 0) {
+        fprintf(stderr, "backlight_write(): %s\n", backlight_errmsg(backlight));
+        exit(1);
+    }
+
+    /* Get max brightness */
+    if (backlight_get_max_brightness(backlight, &max_brightness) < 0) {
+        fprintf(stderr, "backlight_get_max_brightness(): %s\n", backlight_errmsg(backlight));
+        exit(1);
+    }
+
+    /* Set half brightness */
+    if (backlight_set_brightness(backlight, max_brightness / 2) < 0) {
+        fprintf(stderr, "backlight_set_brightness(): %s\n", backlight_errmsg(backlight));
+        exit(1);
+    }
+
+    /* Set 10 % brightness */
+    bl_val = max_brightness * 10 / 100;
+    if (backlight_set_brightness(backlight, bl_val) < 0) {
+        fprintf(stderr, "backlight_set_brightness(): %s\n", backlight_errmsg(backlight));
+        exit(1);
+    }
+
+    backlight_close(backlight);
+
+    backlight_free(backlight);
+
+    return 0;
+}
+```
+
+[Go to BackLight documentation.](docs/backlight.md)
+
 ### PWM
 
 ``` c
